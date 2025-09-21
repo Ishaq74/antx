@@ -41,5 +41,43 @@ const inputClasses = [
   required={required}
   disabled={disabled}
   class={inputClasses}
+  aria-invalid={error ? 'true' : undefined}
+  aria-required={required ? 'true' : undefined}
   {...rest}
 />
+
+<style>
+.input {
+  width: 100%;
+  padding: var(--ds-spacing-md, 0.75rem);
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: var(--ds-radius-md, 6px);
+  font-size: var(--font-size-base, 1rem);
+  background-color: var(--c-background, #fff);
+  color: var(--ds-fg, #1a202c);
+  transition: border-color var(--transition-speed, 0.2s) ease, box-shadow var(--transition-speed, 0.2s) ease;
+}
+.input:focus {
+  outline: none;
+  border-color: var(--c-border-focus, var(--c-primary, #3b82f6));
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+.input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.input--error {
+  border-color: var(--c-error, #dc2626);
+}
+.input--error:focus {
+  border-color: var(--c-error, #dc2626);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+@media (prefers-color-scheme: dark) {
+  .input {
+    background-color: var(--c-background, #0f172a);
+    color: var(--ds-fg, #f8fafc);
+    border-color: var(--c-border, #475569);
+  }
+}
+</style>

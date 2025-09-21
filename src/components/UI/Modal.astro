@@ -1,0 +1,117 @@
+---
+interface Props {
+  open: boolean;
+  onClose?: () => void;
+  title?: string;
+  description?: string;
+  class?: string;
+  style?: string;
+  id?: string;
+  labelledby?: string;
+  describedby?: string;
+}
+
+const {
+  open,
+  onClose,
+  title,
+  description,
+  class: className = "",
+  style,
+  id,
+  labelledby,
+  describedby
+} = Astro.props;
+
+const modalId = id || `modal-${Math.random().toString(36).slice(2, 10)}`;
+const titleId = labelledby || (title ? `${modalId}-title` : undefined);
+const descId = describedby || (description ? `${modalId}-desc` : undefined);
+
+function handleBackdropClick(e: Event) {
+  if (e.target === e.currentTarget && onClose) onClose();
+}
+---
+
+{open && (
+  <div class="modal-backdrop" role="presentation" tabindex="-1" onClick={handleBackdropClick}>
+    <div
+      class={["modal", className].filter(Boolean).join(" ")}
+      id={modalId}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      aria-describedby={descId}
+      style={style}
+    >
+      <button class="modal-close" aria-label="Fermer la fenêtre modale" onClick={onClose} tabindex="0">×</button>
+      {title && <h2 id={titleId} class="modal-title">{title}</h2>}
+      {description && <p id={descId} class="modal-desc">{description}</p>}
+      <slot />
+    </div>
+  </div>
+)}
+
+<style>
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+.modal {
+  background: var(--c-bg, #fff);
+  color: var(--c-fg, #1a202c);
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  min-width: 320px;
+  max-width: 90vw;
+  min-height: 120px;
+  max-height: 90vh;
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
+  position: relative;
+  outline: none;
+  display: flex;
+  flex-direction: column;
+}
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--c-muted, #6b7280);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.modal-close:focus {
+  outline: 2px solid var(--c-accent, #2563eb);
+  outline-offset: 2px;
+}
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.modal-desc {
+  color: var(--c-muted, #6b7280);
+  margin-bottom: 1.25rem;
+}
+@media (prefers-color-scheme: dark) {
+  .modal {
+    background: var(--c-bg, #18181b);
+    color: var(--c-fg, #f3f4f6);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+  }
+  .modal-close {
+    color: var(--c-muted, #a1a1aa);
+  }
+  .modal-desc {
+    color: var(--c-muted, #a1a1aa);
+  }
+}
+</style>

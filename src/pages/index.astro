@@ -1,5 +1,7 @@
 ---
+
 import BaseLayout from "@layouts/BaseLayout.astro"
+import Link from "@components/UI/Link.astro"
 
 // Get user from middleware
 const user = Astro.locals.user;
@@ -25,42 +27,42 @@ const session = Astro.locals.session;
         <div class="user-actions">
           <h2>Vos actions</h2>
           <div class="actions-grid">
-            <a href="/profil" class="action-card">
+            <Link href="/profil" class="action-card">
               <div class="action-icon">👤</div>
               <h3>Mon profil</h3>
               <p>Gérez vos informations personnelles</p>
-            </a>
+            </Link>
             
             {user.role === "admin" && (
-              <a href="/admin" class="action-card admin-card">
+              <Link href="/admin" class="action-card admin-card">
                 <div class="action-icon">⚙️</div>
                 <h3>Administration</h3>
                 <p>Tableau de bord administrateur</p>
-              </a>
+              </Link>
             )}
             
-            <a href="/organisations" class="action-card">
+            <Link href="/organisations" class="action-card">
               <div class="action-icon">🏢</div>
               <h3>Mes organisations</h3>
               <p>Gérez vos organisations</p>
-            </a>
+            </Link>
           </div>
         </div>
       ) : (
         <div class="guest-actions">
           <h2>Commencer</h2>
           <div class="actions-grid">
-            <a href="/inscription" class="action-card primary-card">
+            <Link href="/inscription" class="action-card primary-card">
               <div class="action-icon">✨</div>
               <h3>Créer un compte</h3>
               <p>Rejoignez notre plateforme en quelques minutes</p>
-            </a>
+            </Link>
             
-            <a href="/connexion" class="action-card">
+            <Link href="/connexion" class="action-card">
               <div class="action-icon">🔐</div>
               <h3>Se connecter</h3>
               <p>Accédez à votre compte existant</p>
-            </a>
+            </Link>
           </div>
         </div>
       )}
@@ -107,10 +109,10 @@ const session = Astro.locals.session;
   .hero-section {
     text-align: center;
     padding: 4rem 0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 16px;
-    margin-bottom: 3rem;
+    background: var(--auth-gradient, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
+    color: var(--ds-fg, #f8fafc);
+    border-radius: var(--ds-radius-lg, 16px);
+    margin-bottom: var(--ds-spacing-xl, 3rem);
   }
 
   .hero-section h1 {
@@ -134,10 +136,10 @@ const session = Astro.locals.session;
   }
 
   .role-badge {
-    background: rgba(255, 255, 255, 0.2);
-    padding: 0.25rem 0.75rem;
+    background: var(--c-overlay, rgba(255,255,255,0.2));
+    padding: var(--ds-spacing-sm, 0.25rem) var(--ds-spacing-lg, 0.75rem);
     border-radius: 20px;
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold, 600);
     text-transform: capitalize;
   }
 
@@ -149,10 +151,10 @@ const session = Astro.locals.session;
   .actions-section h2,
   .features-section h2 {
     text-align: center;
-    margin: 0 0 2rem;
-    font-size: 2rem;
-    font-weight: 600;
-    color: #1a202c;
+    margin: 0 0 var(--ds-spacing-xl, 2rem);
+    font-size: var(--font-size-2xl, 2rem);
+    font-weight: var(--font-weight-semibold, 600);
+    color: var(--ds-fg, #1a202c);
   }
 
   .actions-grid,
@@ -163,34 +165,34 @@ const session = Astro.locals.session;
   }
 
   .action-card {
-    background: white;
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    background: var(--ds-surface, #fff);
+    border-radius: var(--ds-radius-lg, 12px);
+    padding: var(--ds-spacing-xl, 2rem);
+    box-shadow: var(--ds-shadow-md, 0 4px 6px -1px rgba(0,0,0,0.07));
     text-decoration: none;
-    color: inherit;
+    color: var(--ds-fg, inherit);
     transition: all 0.3s ease;
     border: 2px solid transparent;
   }
 
   .action-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    border-color: #3b82f6;
+    box-shadow: var(--ds-shadow-md, 0 10px 25px -3px rgba(0,0,0,0.1));
+    border-color: var(--c-primary, #3b82f6);
   }
 
   .action-card.primary-card {
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    color: white;
+    background: linear-gradient(135deg, var(--c-primary, #3b82f6) 0%, var(--c-primary-dark, #1d4ed8) 100%);
+    color: #fff;
   }
 
   .action-card.primary-card:hover {
-    border-color: #1d4ed8;
+    border-color: var(--c-primary-dark, #1d4ed8);
   }
 
   .action-card.admin-card {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    color: white;
+    background: linear-gradient(135deg, var(--c-warning, #f59e0b) 0%, #d97706 100%);
+    color: #fff;
   }
 
   .action-card.admin-card:hover {
@@ -216,12 +218,12 @@ const session = Astro.locals.session;
   }
 
   .feature-card {
-    background: white;
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    background: var(--ds-surface, #fff);
+    border-radius: var(--ds-radius-lg, 12px);
+    padding: var(--ds-spacing-xl, 2rem);
+    box-shadow: var(--ds-shadow-md, 0 4px 6px -1px rgba(0,0,0,0.07));
     text-align: center;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--c-border, #e5e7eb);
   }
 
   .feature-icon {
@@ -231,16 +233,16 @@ const session = Astro.locals.session;
   }
 
   .feature-card h3 {
-    margin: 0 0 0.5rem;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #1a202c;
+    margin: 0 0 var(--ds-spacing-sm, 0.5rem);
+    font-size: var(--font-size-lg, 1.25rem);
+    font-weight: var(--font-weight-semibold, 600);
+    color: var(--ds-fg, #1a202c);
   }
 
   .feature-card p {
     margin: 0;
-    color: #6b7280;
-    font-size: 0.875rem;
+    color: var(--ds-muted, #6b7280);
+    font-size: var(--font-size-sm, 0.875rem);
   }
 
   @media (max-width: 768px) {

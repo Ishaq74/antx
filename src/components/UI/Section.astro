@@ -1,0 +1,59 @@
+---
+interface Props {
+  title?: string;
+  description?: string;
+  class?: string;
+  style?: string;
+  id?: string;
+}
+
+const {
+  title,
+  description,
+  class: className = "",
+  style,
+  id
+} = Astro.props;
+
+const sectionClasses = [
+  "section",
+  className
+].filter(Boolean).join(" ");
+---
+
+<section id={id} class={sectionClasses} style={style} tabindex="-1">
+  {title && <h2 class="section-title">{title}</h2>}
+  {description && <p class="section-desc">{description}</p>}
+  <slot />
+</section>
+
+<style>
+.section {
+  background: var(--ds-surface, var(--c-bg));
+  color: var(--ds-fg, var(--c-fg));
+  border-radius: var(--ds-radius-lg, 12px);
+  box-shadow: var(--ds-shadow-md, 0 4px 6px -1px rgba(0,0,0,0.07));
+  padding: var(--ds-spacing-xl, 2rem);
+  margin-bottom: var(--ds-spacing-xl, 2rem);
+  transition: background 0.2s, color 0.2s;
+}
+.section-title {
+  font-size: var(--ds-title-lg, 1.5rem);
+  font-weight: var(--ds-font-bold, 700);
+  margin-bottom: var(--ds-spacing-sm, 0.5rem);
+}
+.section-desc {
+  color: var(--ds-muted, var(--c-muted));
+  margin-bottom: var(--ds-spacing-lg, 1.5rem);
+}
+.section:has(.section-title:focus-visible) {
+  outline: 2px solid var(--ds-accent, #2563eb);
+  outline-offset: 2px;
+}
+@media (max-width: 600px) {
+  .section {
+    padding: var(--ds-spacing-md, 1rem);
+    border-radius: var(--ds-radius-md, 8px);
+  }
+}
+</style>

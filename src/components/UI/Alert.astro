@@ -24,6 +24,68 @@ const alertClasses = [
   id={id}
   class={alertClasses}
   style={style}
+  role="alert"
+  tabindex="0"
 >
   <slot />
 </div>
+
+<style>
+.alert {
+  padding: var(--ds-spacing-md, 0.75rem) var(--ds-spacing-lg, 1rem);
+  border-radius: var(--ds-radius-md, 6px);
+  font-size: var(--font-size-sm, 0.875rem);
+  margin-bottom: var(--ds-spacing-lg, 1rem);
+  border: 1px solid transparent;
+  background: var(--ds-surface, #fff);
+  color: var(--ds-fg, #1a202c);
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.alert--success {
+  background: var(--c-success-light, #d1fae5);
+  color: var(--c-success, #10b981);
+  border-color: var(--c-success, #10b981);
+}
+.alert--warning {
+  background: var(--c-warning-light, #fef3c7);
+  color: var(--c-warning, #f59e0b);
+  border-color: var(--c-warning, #f59e0b);
+}
+.alert--error {
+  background: var(--c-error-light, #fee2e2);
+  color: var(--c-error, #dc2626);
+  border-color: var(--c-error, #dc2626);
+}
+.alert--info {
+  background: var(--c-info-light, #e0f2fe);
+  color: var(--c-info, #0ea5e9);
+  border-color: var(--c-info, #0ea5e9);
+}
+@media (prefers-color-scheme: dark) {
+  .alert {
+    background: var(--ds-surface, #1e293b);
+    color: var(--ds-fg, #f8fafc);
+    border-color: var(--c-border, #475569);
+  }
+  .alert--success {
+    background: var(--c-success-light, #064e3b);
+    color: var(--c-success, #34d399);
+    border-color: var(--c-success, #34d399);
+  }
+  .alert--warning {
+    background: var(--c-warning-light, #78350f);
+    color: var(--c-warning, #fbbf24);
+    border-color: var(--c-warning, #fbbf24);
+  }
+  .alert--error {
+    background: var(--c-error-light, #7f1d1d);
+    color: var(--c-error, #f87171);
+    border-color: var(--c-error, #f87171);
+  }
+  .alert--info {
+    background: var(--c-info-light, #0c4a6e);
+    color: var(--c-info, #38bdf8);
+    border-color: var(--c-info, #38bdf8);
+  }
+}
+</style>

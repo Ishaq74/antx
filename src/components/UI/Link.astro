@@ -1,0 +1,85 @@
+---
+interface Props {
+  href: string;
+  target?: string;
+  rel?: string;
+  ariaLabel?: string;
+  class?: string;
+  style?: string;
+  active?: boolean;
+  [key: string]: any;
+}
+
+const {
+  href,
+  target,
+  rel,
+  ariaLabel,
+  class: className = "",
+  style,
+  active = false,
+  ...rest
+} = Astro.props;
+
+const linkClasses = [
+  "link",
+  active && "link--active",
+  className
+].filter(Boolean).join(" ");
+---
+<a
+  href={href}
+  target={target}
+  rel={rel || (target === "_blank" ? "noopener noreferrer" : undefined)}
+  aria-label={ariaLabel}
+  class={linkClasses}
+  style={style}
+  {...rest}
+>
+  <slot />
+</a>
+
+<style>
+.link {
+  color: var(--c-primary, #3b82f6);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium, 500);
+  transition: color var(--transition-speed, 0.2s) ease;
+  outline: none;
+  cursor: pointer;
+}
+.link:hover,
+.link:focus-visible {
+  color: var(--c-primary-hover, #2563eb);
+  text-decoration: underline;
+  outline: 2px solid var(--ds-accent, #3b82f6);
+  outline-offset: 2px;
+}
+.link--active {
+  color: var(--c-primary-dark, #1d4ed8);
+  text-decoration: underline;
+}
+.link--muted {
+  color: var(--ds-muted, #6b7280);
+  font-weight: var(--font-weight-normal, 400);
+}
+.link--small {
+  font-size: var(--font-size-sm, 0.875rem);
+}
+@media (prefers-color-scheme: dark) {
+  .link {
+    color: var(--c-primary, #60a5fa);
+  }
+  .link:hover,
+  .link:focus-visible {
+    color: var(--c-primary-hover, #3b82f6);
+    outline: 2px solid var(--ds-accent, #60a5fa);
+  }
+  .link--active {
+    color: var(--c-primary-dark, #93c5fd);
+  }
+  .link--muted {
+    color: var(--ds-muted, #cbd5e1);
+  }
+}
+</style>

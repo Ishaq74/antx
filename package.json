@@ -23,6 +23,7 @@
     "@iconify-json/circle-flags": "^1.2.8",
     "@iconify-json/mdi": "^1.2.3",
     "@prisma/client": "^6.16.2",
+    "@vercel/speed-insights": "^1.2.0",
     "astro": "^5.13.9",
     "astro-font": "^1.1.0",
     "astro-icon": "^1.1.5",

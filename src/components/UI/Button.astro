@@ -35,7 +35,118 @@ const buttonClasses = [
   type={type}
   disabled={disabled || loading}
   class={buttonClasses}
+  aria-disabled={disabled || loading ? 'true' : undefined}
+  aria-busy={loading ? 'true' : undefined}
+  tabindex={disabled ? -1 : 0}
   {...rest}
 >
   <slot />
 </button>
+
+<style>
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ds-spacing-sm, 0.5rem);
+  padding: var(--ds-spacing-md, 0.75rem) var(--ds-spacing-xl, 2rem);
+  border: none;
+  border-radius: var(--ds-radius-md, 6px);
+  font-size: var(--font-size-base, 1rem);
+  font-weight: var(--font-weight-medium, 500);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  text-decoration: none;
+  line-height: 1.2;
+  background: var(--ds-surface, #f8fafc);
+  color: var(--ds-fg, #1a202c);
+  position: relative;
+  min-width: 2.5rem;
+}
+.btn:focus-visible {
+  outline: 2px solid var(--ds-accent, #3b82f6);
+  outline-offset: 2px;
+  z-index: 1;
+}
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+/* Primary */
+.btn--primary {
+  background: var(--c-primary, #3b82f6);
+  color: #fff;
+}
+.btn--primary:hover:not(:disabled):not([aria-disabled="true"]),
+.btn--primary:focus-visible:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--c-primary-hover, #2563eb);
+}
+/* Secondary */
+.btn--secondary {
+  background: transparent;
+  color: var(--ds-muted, #6b7280);
+  border: 1px solid var(--c-border, #e2e8f0);
+}
+.btn--secondary:hover:not(:disabled):not([aria-disabled="true"]),
+.btn--secondary:focus-visible:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--ds-surface, #f8fafc);
+  color: var(--ds-fg, #1a202c);
+}
+/* Ghost */
+.btn--ghost {
+  background: transparent;
+  color: var(--c-primary, #3b82f6);
+}
+.btn--ghost:hover:not(:disabled):not([aria-disabled="true"]),
+.btn--ghost:focus-visible:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--c-primary-light, #dbeafe);
+}
+/* Full width */
+.btn--full {
+  width: 100%;
+}
+/* Sizes */
+.btn--lg {
+  padding: var(--ds-spacing-lg, 1rem) var(--ds-spacing-xl, 2rem);
+  font-size: var(--font-size-lg, 1.125rem);
+}
+.btn--sm {
+  padding: var(--ds-spacing-sm, 0.5rem) var(--ds-spacing-lg, 1rem);
+  font-size: var(--font-size-sm, 0.875rem);
+}
+/* Loading spinner */
+.btn--loading {
+  position: relative;
+  pointer-events: none;
+}
+.btn--loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--ds-muted, #6b7280);
+  border-top: 2px solid var(--ds-accent, #3b82f6);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+@media (max-width: 600px) {
+  .btn {
+    padding: var(--ds-spacing-md, 0.75rem) var(--ds-spacing-lg, 1rem);
+    font-size: var(--font-size-base, 1rem);
+  }
+  .btn--lg {
+    font-size: var(--font-size-base, 1rem);
+  }
+  .btn--sm {
+    font-size: var(--font-size-sm, 0.875rem);
+  }
+}
+</style>

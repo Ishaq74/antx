@@ -30,23 +30,19 @@ const AUTH_PATHS = [
 
 export const onRequest: MiddlewareHandler = async ({ request, url, locals }, next) => {
   try {
-    // Security: Récupère session + user depuis Better Auth
+    locals.auth = auth;
     const result = await auth.api.getSession({
       headers: request.headers,
     });
-
-    // Security: Injection dans locals pour les pages Astro
     locals.user = result?.user ?? null;
     locals.session = result?.session ?? null;
 
-    // Security: Add security headers for all responses
     const response = await (async () => {
-      // Security: Redirect authenticated users away from auth pages
       if (AUTH_PATHS.includes(url.pathname) && locals.user) {
         return new Response(null, {
           status: 302,
           headers: {
-            Location: "/dashboard", // or wherever authenticated users should go
+            Location: "/dashboard",
           },
         });
       }
@@ -74,7 +70,6 @@ export const onRequest: MiddlewareHandler = async ({ request, url, locals }, nex
         }
       }
 
-      // Security: Redirection automatique si page privée et pas connecté
       if (PRIVATE_PATHS.some((path) => url.pathname.startsWith(path)) && !locals.user) {
         return new Response(null, {
           status: 302,
@@ -84,7 +79,6 @@ export const onRequest: MiddlewareHandler = async ({ request, url, locals }, nex
         });
       }
 
-      // Continue to the next middleware/page
       return next();
     })();
 

@@ -1,0 +1,93 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Button from '@components/UI/Button.astro';
+import Alert from '@components/UI/Alert.astro';
+import FormGroup from '@components/UI/FormGroup.astro';
+import Input from '@components/UI/Input.astro';
+import Section from '@components/UI/Section.astro';
+import Modal from '@components/UI/Modal.astro';
+import Table from '@components/UI/Table.astro';
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
+
+const users = await prisma.user.findMany({
+  orderBy: { createdAt: 'desc' }
+});
+---
+
+<BaseLayout title="Administration - Utilisateurs" description="Gestion des utilisateurs pour les administrateurs">
+  <main class="admin-users-page">
+    <Section title='Administration des utilisateurs' style="margin-top:2rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+          <FormGroup label="Recherche">
+            <Input
+              id="search-users"
+              name="search"
+              placeholder="Rechercher par nom ou email..."
+              autoComplete="off"
+            />
+          </FormGroup>
+        <Button variant="primary" popovertarget="create-user-modal" popovertargetaction="show" type="button" class="btn btn-primary" style="margin-bottom:1.5rem;">Créer un utilisateur</Button>
+    </div>
+
+  <dialog id="create-user-modal" popover style="max-width:500px;width:90vw;border-radius:1rem;padding:2rem;">
+    <form method="post" aria-labelledby="create-user-title">
+      <h2 id="create-user-title" style="font-size:1.25rem;font-weight:600;margin-bottom:1rem;">Créer un utilisateur</h2>
+      <FormGroup label="Nom complet" id="user-name" required>
+        <Input id="user-name" name="name" required placeholder="Nom complet" />
+      </FormGroup>
+      <FormGroup label="Email" id="user-email" required>
+        <Input id="user-email" name="email" type="email" required placeholder="Adresse email" />
+      </FormGroup>
+      <FormGroup label="Nom d'utilisateur" id="user-username">
+        <Input id="user-username" name="username" placeholder="Nom d'utilisateur (optionnel)" />
+      </FormGroup>
+      <FormGroup label="Mot de passe" id="user-password" required>
+        <Input id="user-password" name="password" type="password" required placeholder="Mot de passe" />
+      </FormGroup>
+      <FormGroup label="Rôle" id="user-role">
+        <select id="user-role" name="role" class="input">
+          <option value="user">Utilisateur</option>
+          <option value="admin">Administrateur</option>
+        </select>
+      </FormGroup>
+      <div style="display:flex;gap:1rem;margin-top:1.5rem;">
+        <Button type="submit" variant="primary">Créer</Button>
+        <button type="button" popovertarget="create-user-modal" popovertargetaction="hide" class="btn btn-secondary">Annuler</button>
+      </div>
+      <Alert id="create-user-feedback" style="display:none;margin-top:1rem;" />
+    </form>
+  </dialog>
+
+    <Table
+      headers={["Nom", "Email", "Rôle", "Statut", "Inscription", "Actions"]}
+      rows={users.map(user => [
+        user.name,
+        `<a href=\"mailto:${user.email}\">${user.email}</a>`,
+        user.role ?? 'user',
+        `<span class=\"${user.banned ? 'status-banned' : user.emailVerified ? 'status-active' : 'status-unverified'}\">${user.banned ? 'Banni' : user.emailVerified ? 'Actif' : 'Non vérifié'}</span>`,
+        user.createdAt.toLocaleDateString('fr-FR'),
+        `<div style=\"display:flex;gap:0.5rem;\">
+          <button class=\"btn btn-primary btn-sm\" aria-label=\"Modifier ${user.name}\">Éditer</button>
+          <button class=\"btn btn-secondary btn-sm\" aria-label=\"Bannir ${user.name}\">Bannir</button>
+          <button class=\"btn btn-ghost btn-sm\" aria-label=\"Supprimer ${user.name}\">Supprimer</button>
+        </div>`
+      ])}
+      ariaLabel="Liste des utilisateurs"
+    >
+      <span slot="empty">Aucun utilisateur trouvé</span>
+    </Table>
+  </Section>
+  </main>
+</BaseLayout>
+
+<script type="module">
+  // Affiche/masque le formulaire de création utilisateur
+  const showBtn = document.getElementById('show-create-user');
+  const form = document.getElementById('create-user-form');
+  const cancelBtn = document.getElementById('cancel-create-user');
+  if (showBtn && form && cancelBtn) {
+    showBtn.onclick = () => { form.style.display = 'block'; showBtn.style.display = 'none'; };
+    cancelBtn.onclick = () => { form.style.display = 'none'; showBtn.style.display = 'inline-block'; };
+  }
+</script>

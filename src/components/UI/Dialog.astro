@@ -1,0 +1,96 @@
+---
+interface Props {
+  id?: string;
+  title?: string;
+  class?: string;
+  style?: string;
+  popover?: boolean;
+}
+
+const {
+  id,
+  title,
+  class: className = "",
+  style,
+  popover = true
+} = Astro.props;
+
+const dialogId = id || `modal-${Math.random().toString(36).slice(2, 10)}`;
+---
+<dialog id={dialogId} use:popover={popover ? true : undefined} class={["ui-modal", className].filter(Boolean).join(" ")} style={style}>
+  {title && <h2 class="ui-modal-title">{title}</h2>}
+  <button type="button" popovertarget={dialogId} popovertargetaction="hide" class="ui-modal-close" aria-label="Fermer">×</button>
+  <div class="ui-modal-content">
+    <slot />
+  </div>
+</dialog>
+
+<style>
+.ui-modal {
+  max-width: 500px;
+  width: 90vw;
+  border-radius: 1rem;
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
+  border: none;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  background: var(--c-bg, #fff);
+  color: var(--c-fg, #1a202c);
+  position: relative;
+  margin: auto;
+  overflow: auto;
+  outline: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.ui-modal[open] {
+  animation: modal-fade-in 0.2s;
+}
+@keyframes modal-fade-in {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: none; }
+}
+.ui-modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.ui-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--c-muted, #6b7280);
+  cursor: pointer;
+  transition: color 0.2s;
+  z-index: 2;
+}
+.ui-modal-close:focus {
+  outline: 2px solid var(--c-accent, #2563eb);
+  outline-offset: 2px;
+}
+.ui-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+@media (max-width: 600px) {
+  .ui-modal {
+    padding: 1rem 0.5rem;
+    min-width: unset;
+    max-width: 98vw;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  .ui-modal {
+    background: var(--c-bg, #18181b);
+    color: var(--c-fg, #f3f4f6);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+  }
+  .ui-modal-close {
+    color: var(--c-muted, #a1a1aa);
+  }
+}
+</style>

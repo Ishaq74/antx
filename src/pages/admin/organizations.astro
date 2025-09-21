@@ -1,0 +1,30 @@
+---
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
+
+const orgs = await prisma.organization.findMany({
+  orderBy: { createdAt: 'desc' }
+});
+---
+
+<h1>Organisations</h1>
+<table>
+  <thead>
+    <tr>
+      <th>Nom</th>
+      <th>Slug</th>
+      <th>Membres</th>
+      <th>Création</th>
+    </tr>
+  </thead>
+  <tbody>
+    {orgs.map(org => (
+      <tr>
+        <td>{org.name}</td>
+        <td>{org.slug}</td>
+        <td>{org.members ? org.members.length : 0}</td>
+        <td>{org.createdAt.toLocaleDateString('fr-FR')}</td>
+      </tr>
+    ))}
+  </tbody>
+</table>

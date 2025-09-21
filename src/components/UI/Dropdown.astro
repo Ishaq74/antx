@@ -1,0 +1,64 @@
+---
+interface Props {
+  open?: boolean;
+  class?: string;
+  style?: string;
+  labelledby?: string;
+  role?: string;
+}
+const {
+  open = false,
+  class: className = "",
+  style,
+  labelledby,
+  role = "menu",
+  ...rest
+} = Astro.props;
+const dropdownClasses = ["ui-dropdown", open && "ui-dropdown--open", className].filter(Boolean).join(" ");
+---
+<ul
+  class={dropdownClasses}
+  style={style}
+  aria-labelledby={labelledby}
+  role={role}
+  tabindex="-1"
+  {...rest}
+>
+  <slot />
+</ul>
+
+<style>
+.ui-dropdown {
+  position: absolute;
+  z-index: 55;
+  padding: var(--ds-spacing-sm, 0.5rem);
+  min-width: 220px;
+  background: var(--ds-surface, #fff);
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: var(--ds-radius-md, 6px);
+  box-shadow: var(--ds-shadow-md, 0 4px 12px rgba(0,0,0,0.15));
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
+  list-style: none;
+  margin: 0;
+  color: var(--ds-fg, #1a202c);
+}
+.ui-dropdown--open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.ui-dropdown:focus {
+  outline: 2px solid var(--ds-accent, #3b82f6);
+  outline-offset: 2px;
+}
+@media (prefers-color-scheme: dark) {
+  .ui-dropdown {
+    background: var(--ds-surface, #1e293b);
+    color: var(--ds-fg, #f8fafc);
+    border-color: var(--c-border, #475569);
+  }
+}
+</style>

@@ -1,0 +1,155 @@
+---
+interface Props {
+  headers: Array<string>;
+  rows: Array<any[]>;
+  caption?: string;
+  class?: string;
+  style?: string;
+  id?: string;
+  ariaLabel?: string;
+}
+
+const {
+  headers,
+  rows,
+  caption,
+  class: className = "",
+  style,
+  id,
+  ariaLabel
+} = Astro.props;
+
+const tableClass = ["ui-table", className].filter(Boolean).join(" ");
+---
+
+<table
+  id={id}
+  class={tableClass}
+  style={style}
+  aria-label={ariaLabel}
+  role="table"
+  tabindex="0"
+>
+  {caption && <caption class="ui-table-caption">{caption}</caption>}
+  <thead>
+    <tr>
+      {headers.map((h) => <th scope="col">{h}</th>)}
+    </tr>
+  </thead>
+  <tbody>
+    {rows.length === 0 ? (
+      <tr><td colspan={headers.length}><slot name="empty">Aucune donnée</slot></td></tr>
+    ) : (
+      rows.map((row) => (
+        <tr>
+          {row.map((cell) => <td set:html={cell} />)}
+        </tr>
+      ))
+    )}
+  </tbody>
+</table>
+
+<style>
+.ui-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--ds-surface, #f8fafc);
+  color: var(--ds-fg, #1a202c);
+  border-radius: var(--ds-radius-lg, 12px);
+  overflow: hidden;
+  font-size: var(--font-size-base, 1rem);
+  box-shadow: var(--ds-shadow-md, 0 4px 6px -1px rgba(0,0,0,0.07));
+  transition: background 0.2s, color 0.2s;
+}
+.ui-table-caption {
+  caption-side: top;
+  font-size: var(--font-size-lg, 1.125rem);
+  font-weight: var(--font-weight-bold, 700);
+  color: var(--ds-muted, #6b7280);
+  padding: var(--ds-spacing-sm, 0.5rem);
+}
+.ui-table th, .ui-table td {
+  padding: var(--ds-spacing-md, 0.75rem) var(--ds-spacing-lg, 1rem);
+  text-align: left;
+  border-bottom: 1px solid var(--c-border, #e2e8f0);
+  background: none;
+  font-size: var(--font-size-base, 1rem);
+}
+.ui-table th {
+  background: var(--ds-surface, #f8fafc);
+  color: var(--ds-fg, #1a202c);
+  font-weight: var(--font-weight-bold, 700);
+}
+.ui-table tr:last-child td {
+  border-bottom: none;
+}
+.ui-table th:focus-visible, .ui-table td:focus-visible {
+  outline: 2px solid var(--ds-accent, #3b82f6);
+  outline-offset: 2px;
+  z-index: 1;
+}
+.ui-table tr:hover td {
+  background: var(--c-primary-light, #dbeafe);
+  color: var(--ds-fg, #1a202c);
+}
+@media (max-width: 600px) {
+  .ui-table th, .ui-table td {
+    padding: var(--ds-spacing-sm, 0.5rem);
+    font-size: var(--font-size-sm, 0.875rem);
+  }
+}
+@media (prefers-color-scheme: dark) {
+  .ui-table {
+    background: var(--ds-surface, #1e293b);
+    color: var(--ds-fg, #f8fafc);
+    box-shadow: var(--ds-shadow-md, 0 4px 12px -2px rgba(0,0,0,0.25));
+  }
+  .ui-table th {
+    background: var(--ds-surface, #1e293b);
+    color: var(--ds-fg, #f8fafc);
+  }
+  .ui-table th, .ui-table td {
+    border-bottom: 1px solid var(--c-border, #475569);
+  }
+  .ui-table tr:hover td {
+    background: var(--c-primary-light, #1e3a8a);
+    color: var(--ds-fg, #f8fafc);
+  }
+}
+</style>
+
+<style>
+.ui-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--c-bg, #fff);
+  color: var(--c-fg, #1a202c);
+  border-radius: 10px;
+  overflow: hidden;
+  font-size: 1rem;
+}
+.ui-table th, .ui-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--c-border, #e5e7eb);
+}
+.ui-table th {
+  background: var(--c-bg-alt, #f3f4f6);
+  font-weight: 700;
+}
+.ui-table tr:last-child td {
+  border-bottom: none;
+}
+@media (prefers-color-scheme: dark) {
+  .ui-table {
+    background: var(--c-bg, #18181b);
+    color: var(--c-fg, #f3f4f6);
+  }
+  .ui-table th {
+    background: var(--c-bg-alt, #23232a);
+  }
+  .ui-table th, .ui-table td {
+    border-bottom: 1px solid var(--c-border, #27272a);
+  }
+}
+</style>

@@ -25,19 +25,58 @@ const groupClasses = [
 
 <div class={groupClasses}>
   {label && (
-    <label for={id}>
+    <label for={id} class="form-group__label">
       {label}
-      {required && <span style="color: var(--c-error);"> *</span>}
+      {required && <span class="form-group__required"> *</span>}
     </label>
   )}
-  
+
   <slot />
-  
+
   {helpText && !error && (
-    <small>{helpText}</small>
+    <small class="form-group__help">{helpText}</small>
   )}
-  
+
   {error && (
-    <small class="error">{error}</small>
+    <small class="form-group__error">{error}</small>
   )}
 </div>
+
+<style>
+.form-group {
+  margin-bottom: var(--ds-spacing-xl, 1.5rem);
+}
+.form-group__label {
+  display: block;
+  margin-bottom: var(--ds-spacing-sm, 0.5rem);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--ds-muted, #6b7280);
+  font-size: var(--font-size-sm, 0.875rem);
+}
+.form-group__required {
+  color: var(--c-error, #dc2626);
+}
+.form-group__help {
+  display: block;
+  margin-top: var(--ds-spacing-xs, 0.25rem);
+  font-size: var(--font-size-xs, 0.75rem);
+  color: var(--ds-muted, #6b7280);
+}
+.form-group__error {
+  display: block;
+  margin-top: var(--ds-spacing-xs, 0.25rem);
+  font-size: var(--font-size-xs, 0.75rem);
+  color: var(--c-error, #dc2626);
+}
+@media (prefers-color-scheme: dark) {
+  .form-group__label {
+    color: var(--ds-muted, #cbd5e1);
+  }
+  .form-group__help {
+    color: var(--ds-muted, #cbd5e1);
+  }
+  .form-group__error {
+    color: var(--c-error, #f87171);
+  }
+}
+</style>
