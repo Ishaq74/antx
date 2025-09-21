@@ -61,6 +61,7 @@ if (user) {
           <Button type="submit" fullWidth>Se connecter</Button>
           
           <Alert variant="error" id="email-error" style="display: none;" />
+          <Alert variant="success" id="email-success" style="display: none;" />
         </form>
       </div>
 
@@ -98,6 +99,7 @@ if (user) {
           <Button type="submit" fullWidth>Se connecter</Button>
           
           <Alert variant="error" id="username-error" style="display: none;" />
+          <Alert variant="success" id="username-success" style="display: none;" />
         </form>
       </div>
 
@@ -121,6 +123,7 @@ if (user) {
           <Button type="submit" fullWidth>Envoyer le code</Button>
           
           <Alert variant="error" id="otp-error" style="display: none;" />
+          <Alert variant="success" id="otp-success" style="display: none;" />
         </form>
 
         <!-- OTP Verification Form (hidden initially) -->
@@ -145,6 +148,7 @@ if (user) {
           <Button type="button" variant="secondary" fullWidth id="back-to-email">Retour</Button>
           
           <Alert variant="error" id="otp-verify-error" style="display: none;" />
+          <Alert variant="success" id="otp-verify-success" style="display: none;" />
         </form>
       </div>
 
@@ -159,6 +163,7 @@ if (user) {
 
 <script>
   import { authClient } from "@lib/auth-client";
+  import { mapErrorMessage, getSuccessMessage, getLoadingMessage } from "@lib/error-messages";
 
   // Tab switching functionality
   const tabBtns = document.querySelectorAll('.tab-btn');
@@ -178,16 +183,38 @@ if (user) {
     });
   });
 
-  // Error display function
+  // Error and success display functions
   function showError(elementId, message) {
     const errorElement = document.getElementById(elementId);
     errorElement.textContent = message;
     errorElement.style.display = 'block';
+    
+    // Hide corresponding success message
+    const successElementId = elementId.replace('-error', '-success');
+    const successElement = document.getElementById(successElementId);
+    if (successElement) {
+      successElement.style.display = 'none';
+    }
   }
 
   function hideError(elementId) {
     const errorElement = document.getElementById(elementId);
     errorElement.style.display = 'none';
+  }
+
+  function showSuccess(elementId, message) {
+    const successElement = document.getElementById(elementId);
+    if (successElement) {
+      successElement.textContent = message;
+      successElement.style.display = 'block';
+      
+      // Hide corresponding error message
+      const errorElementId = elementId.replace('-success', '-error');
+      const errorElement = document.getElementById(errorElementId);
+      if (errorElement) {
+        errorElement.style.display = 'none';
+      }
+    }
   }
 
   // Email/Password Sign In
@@ -202,7 +229,7 @@ if (user) {
     
     const submitBtn = e.target.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Connexion...';
+    submitBtn.textContent = getLoadingMessage('signin');
     
     try {
       const { data, error } = await authClient.signIn.email({
@@ -213,12 +240,12 @@ if (user) {
       });
       
       if (error) {
-        showError('email-error', error.message || 'Erreur de connexion');
+        showError('email-error', mapErrorMessage(error));
       } else {
         window.location.href = "/";
       }
     } catch (error) {
-      showError('email-error', 'Erreur de connexion');
+      showError('email-error', mapErrorMessage(error));
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Se connecter';
@@ -237,7 +264,7 @@ if (user) {
     
     const submitBtn = e.target.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Connexion...';
+    submitBtn.textContent = getLoadingMessage('signin');
     
     try {
       const { data, error } = await authClient.signIn.username({
@@ -248,12 +275,12 @@ if (user) {
       });
       
       if (error) {
-        showError('username-error', error.message || 'Erreur de connexion');
+        showError('username-error', mapErrorMessage(error));
       } else {
         window.location.href = "/";
       }
     } catch (error) {
-      showError('username-error', 'Erreur de connexion');
+      showError('username-error', mapErrorMessage(error));
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Se connecter';
@@ -270,7 +297,7 @@ if (user) {
     
     const submitBtn = e.target.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Envoi...';
+    submitBtn.textContent = getLoadingMessage('otp-sending');
     
     try {
       const { data, error } = await authClient.sendVerificationOtp({
@@ -279,14 +306,15 @@ if (user) {
       });
       
       if (error) {
-        showError('otp-error', error.message || 'Erreur lors de l\'envoi du code');
+        showError('otp-error', mapErrorMessage(error));
       } else {
+        showSuccess('otp-success', getSuccessMessage('otp-sent'));
         // Show verification form
         document.getElementById('otp-request-form').style.display = 'none';
         document.getElementById('otp-verify-form').style.display = 'block';
       }
     } catch (error) {
-      showError('otp-error', 'Erreur lors de l\'envoi du code');
+      showError('otp-error', mapErrorMessage(error));
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Envoyer le code';
@@ -304,7 +332,7 @@ if (user) {
     
     const submitBtn = e.target.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Vérification...';
+    submitBtn.textContent = getLoadingMessage('otp-verifying');
     
     try {
       const { data, error } = await authClient.signIn.emailOtp({
@@ -313,12 +341,12 @@ if (user) {
       });
       
       if (error) {
-        showError('otp-verify-error', error.message || 'Code invalide');
+        showError('otp-verify-error', mapErrorMessage(error));
       } else {
         window.location.href = "/";
       }
     } catch (error) {
-      showError('otp-verify-error', 'Code invalide');
+      showError('otp-verify-error', mapErrorMessage(error));
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Vérifier le code';
@@ -330,5 +358,8 @@ if (user) {
     document.getElementById('otp-verify-form').style.display = 'none';
     document.getElementById('otp-request-form').style.display = 'block';
     hideError('otp-verify-error');
+    hideError('otp-error');
+    document.getElementById('otp-success').style.display = 'none';
+    document.getElementById('otp-verify-success').style.display = 'none';
   });
 </script>

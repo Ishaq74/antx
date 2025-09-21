@@ -548,6 +548,7 @@ if (!user) {
 
 <script>
   import { authClient } from "@lib/auth-client";
+  import { mapErrorMessage, getSuccessMessage, getLoadingMessage } from "@lib/error-messages";
 
   // Error/Success display functions
   function showError(elementId, message) {
@@ -603,9 +604,9 @@ if (!user) {
       });
       
       if (error) {
-        showError('profile-error', error.message || 'Erreur lors de la mise à jour');
+        showError('profile-error', mapErrorMessage(error));
       } else {
-        showSuccess('profile-success', 'Profil mis à jour avec succès');
+        showSuccess('profile-success', getSuccessMessage('profile-updated'));
         // Update display
         document.getElementById('display-name').textContent = formData.get('name');
         document.getElementById('display-username').textContent = formData.get('username') || 'Non défini';
@@ -636,7 +637,7 @@ if (!user) {
       });
       
       if (error) {
-        showError('verify-error', error.message || 'Erreur lors de l\'envoi');
+        showError('verify-error', mapErrorMessage(error));
       } else {
         sendVerificationBtn.style.display = 'none';
         verifyForm.style.display = 'block';
@@ -670,9 +671,9 @@ if (!user) {
       });
       
       if (error) {
-        showError('verify-error', error.message || 'Code invalide');
+        showError('verify-error', mapErrorMessage(error));
       } else {
-        showSuccess('verify-success', 'Email vérifié avec succès !');
+        showSuccess('verify-success', getSuccessMessage('email-verified'));
         setTimeout(() => location.reload(), 2000);
       }
     } catch (error) {
@@ -732,9 +733,9 @@ if (!user) {
       });
       
       if (error) {
-        showError('password-error', error.message || 'Erreur lors du changement');
+        showError('password-error', mapErrorMessage(error));
       } else {
-        showSuccess('password-success', 'Mot de passe changé avec succès');
+        showSuccess('password-success', getSuccessMessage('password-reset'));
         e.target.reset();
       }
     } catch (error) {
@@ -824,7 +825,7 @@ if (!user) {
       });
       
       if (error) {
-        showError('org-error', error.message || 'Erreur lors de la création');
+        showError('org-error', mapErrorMessage(error));
       } else {
         modal.style.display = 'none';
         loadOrganizations();

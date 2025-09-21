@@ -168,6 +168,7 @@ if (user) {
 
 <script>
   import { authClient } from "@lib/auth-client";
+  import { mapErrorMessage, getSuccessMessage, getLoadingMessage } from "@lib/error-messages";
 
   // Organization option handling
   const orgOptions = document.querySelectorAll('input[name="orgOption"]');
@@ -271,7 +272,7 @@ if (user) {
     
     const submitBtn = e.target.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Création du compte...';
+    submitBtn.textContent = getLoadingMessage('signup');
     
     try {
       // Prepare signup data
@@ -293,7 +294,7 @@ if (user) {
       const { data, error } = await authClient.signUp.email(signupData);
       
       if (error) {
-        showError(error.message || 'Erreur lors de la création du compte');
+        showError(mapErrorMessage(error));
       } else {
         // Handle organization creation or joining
         if (orgOption === 'create' && data.user) {
@@ -322,19 +323,19 @@ if (user) {
               email: formData.get('email'),
               type: "email-verification"
             });
-            showSuccess('Compte créé ! Un email de vérification a été envoyé.');
+            showSuccess(getSuccessMessage('signup-verify'));
           } catch (verifyError) {
-            showSuccess('Compte créé ! Vous pouvez maintenant vous connecter.');
+            showSuccess(getSuccessMessage('signup'));
           }
         } else {
-          showSuccess('Compte créé avec succès ! Redirection...');
+          showSuccess(getSuccessMessage('signup') + ' Redirection...');
           setTimeout(() => {
             window.location.href = "/";
           }, 2000);
         }
       }
     } catch (error) {
-      showError('Erreur lors de la création du compte');
+      showError(mapErrorMessage(error));
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Créer mon compte';
