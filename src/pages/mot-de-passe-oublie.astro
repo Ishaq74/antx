@@ -1,6 +1,10 @@
 ---
 export const prerender = false;
 import BaseLayout from "@layouts/BaseLayout.astro";
+import Input from "@components/UI/Input.astro";
+import Button from "@components/UI/Button.astro";
+import Alert from "@components/UI/Alert.astro";
+import FormGroup from "@components/UI/FormGroup.astro";
 
 // Check if user is already authenticated
 const user = Astro.locals.user;
@@ -20,69 +24,63 @@ if (user) {
       <!-- Step 1: Request OTP -->
       <div id="request-step" class="step-content">
         <form id="request-form" class="auth-form">
-          <div class="form-group">
-            <label for="email">Adresse email</label>
-            <input 
-              type="email" 
-              id="email" 
-              name="email" 
-              required 
+          <FormGroup label="Adresse email" id="email" required helpText="Entrez l'email associé à votre compte">
+            <Input
+              type="email"
+              id="email"
+              name="email"
               placeholder="votre@email.com"
+              required
             />
-            <small>Entrez l'email associé à votre compte</small>
-          </div>
+          </FormGroup>
           
-          <button type="submit" class="auth-btn">Envoyer le code</button>
+          <Button type="submit" fullWidth>Envoyer le code</Button>
           
-          <div class="auth-error" id="request-error" style="display: none;"></div>
+          <Alert variant="error" id="request-error" style="display: none;" />
         </form>
       </div>
 
       <!-- Step 2: Verify OTP and Set New Password -->
       <div id="reset-step" class="step-content" style="display: none;">
         <form id="reset-form" class="auth-form">
-          <div class="form-group">
-            <label for="otp">Code de vérification</label>
-            <input 
-              type="text" 
-              id="otp" 
-              name="otp" 
-              required 
+          <FormGroup label="Code de vérification" id="otp" required helpText="Entrez le code reçu par email">
+            <Input
+              type="text"
+              id="otp"
+              name="otp"
               placeholder="000000"
               maxlength="6"
               pattern="[0-9]{6}"
+              required
             />
-            <small>Entrez le code reçu par email</small>
-          </div>
+          </FormGroup>
           
-          <div class="form-group">
-            <label for="newPassword">Nouveau mot de passe</label>
-            <input 
-              type="password" 
-              id="newPassword" 
-              name="newPassword" 
-              required 
+          <FormGroup label="Nouveau mot de passe" id="newPassword" required>
+            <Input
+              type="password"
+              id="newPassword"
+              name="newPassword"
               placeholder="Nouveau mot de passe sécurisé"
               minlength="8"
+              required
             />
             <div class="password-strength" id="password-strength"></div>
-          </div>
+          </FormGroup>
           
-          <div class="form-group">
-            <label for="confirmPassword">Confirmer le mot de passe</label>
-            <input 
-              type="password" 
-              id="confirmPassword" 
-              name="confirmPassword" 
-              required 
-              placeholder="Confirmer le nouveau mot de passe"
+          <FormGroup label="Confirmer le mot de passe" id="confirmPassword" required>
+            <Input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              placeholder="Confirmez votre nouveau mot de passe"
+              required
             />
-          </div>
+          </FormGroup>
           
-          <button type="submit" class="auth-btn">Réinitialiser le mot de passe</button>
-          <button type="button" id="back-btn" class="auth-btn-secondary">Retour</button>
+          <Button type="submit" fullWidth>Réinitialiser le mot de passe</Button>
+          <Button type="button" variant="secondary" fullWidth id="back-btn">Retour</Button>
           
-          <div class="auth-error" id="reset-error" style="display: none;"></div>
+          <Alert variant="error" id="reset-error" style="display: none;" />
         </form>
       </div>
 
@@ -92,226 +90,43 @@ if (user) {
           <div class="success-icon">✅</div>
           <h2>Mot de passe réinitialisé !</h2>
           <p>Votre mot de passe a été mis à jour avec succès.</p>
-          <a href="/connexion" class="auth-btn">Se connecter</a>
+          <Button href="/connexion" fullWidth>Se connecter</Button>
         </div>
       </div>
 
       <div class="auth-footer">
-        <p>Vous vous souvenez de votre mot de passe ? <a href="/connexion">Se connecter</a></p>
-        <p>Pas encore de compte ? <a href="/inscription">Créer un compte</a></p>
+        <p>Vous vous souvenez de votre mot de passe ? <a href="/connexion" class="link">Se connecter</a></p>
+        <p>Pas encore de compte ? <a href="/inscription" class="link">Créer un compte</a></p>
       </div>
     </div>
   </div>
 </BaseLayout>
 
+<!-- All styles now handled by theme.css -->
+
 <style>
-  .auth-container {
-    min-height: calc(100vh - var(--header-height));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  }
-
-  .auth-card {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    width: 100%;
-    max-width: 420px;
-    overflow: hidden;
-  }
-
-  .auth-header {
-    text-align: center;
-    padding: 2rem 2rem 1rem;
-  }
-
-  .auth-header h1 {
-    margin: 0 0 0.5rem;
-    color: #1a202c;
-    font-size: 1.875rem;
-    font-weight: 700;
-  }
-
-  .auth-header p {
-    margin: 0;
-    color: #6b7280;
-    font-size: 1rem;
-  }
-
-  .step-content {
-    padding: 0 2rem 2rem;
-  }
-
-  .auth-form {
-    space-y: 1.5rem;
-  }
-
-  .form-group {
-    margin-bottom: 1.5rem;
-  }
-
-  .form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-    color: #374151;
-    font-size: 0.875rem;
-  }
-
-  .form-group input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 1rem;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .form-group input:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
-
-  .form-group small {
-    display: block;
-    margin-top: 0.25rem;
-    font-size: 0.75rem;
-    color: #6b7280;
-  }
-
-  .password-strength {
-    margin-top: 0.5rem;
-    font-size: 0.75rem;
-  }
-
-  .password-strength.weak {
-    color: #dc2626;
-  }
-
-  .password-strength.medium {
-    color: #f59e0b;
-  }
-
-  .password-strength.strong {
-    color: #10b981;
-  }
-
-  .auth-btn {
-    width: 100%;
-    padding: 0.75rem;
-    background: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    text-decoration: none;
-    display: inline-block;
-    text-align: center;
-  }
-
-  .auth-btn:hover {
-    background: #2563eb;
-  }
-
-  .auth-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .auth-btn-secondary {
-    width: 100%;
-    padding: 0.75rem;
-    background: transparent;
-    color: #6b7280;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    margin-top: 0.75rem;
-  }
-
-  .auth-btn-secondary:hover {
-    background: #f9fafb;
-    border-color: #9ca3af;
-  }
-
-  .auth-error {
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    color: #dc2626;
-    padding: 0.75rem;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    margin-top: 1rem;
-  }
-
+  /* Custom styles for success message */
   .success-message {
     text-align: center;
-    padding: 2rem 0;
+    padding: var(--space-2xl);
   }
 
   .success-icon {
-    font-size: 4rem;
-    margin-bottom: 1rem;
+    font-size: var(--font-size-4xl);
+    margin-bottom: var(--space-lg);
   }
 
   .success-message h2 {
-    margin: 0 0 1rem;
-    color: #059669;
-    font-size: 1.5rem;
-    font-weight: 700;
+    margin: 0 0 var(--space-lg);
+    color: var(--c-success);
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
   }
 
   .success-message p {
-    margin: 0 0 2rem;
-    color: #6b7280;
-    font-size: 1rem;
-  }
-
-  .auth-footer {
-    text-align: center;
-    padding: 1.5rem 2rem 2rem;
-    border-top: 1px solid #e5e7eb;
-    background: #f9fafb;
-  }
-
-  .auth-footer p {
-    margin: 0 0 0.5rem;
-    font-size: 0.875rem;
-    color: #6b7280;
-  }
-
-  .auth-footer p:last-child {
-    margin-bottom: 0;
-  }
-
-  .auth-footer a {
-    color: #3b82f6;
-    text-decoration: none;
-    font-weight: 500;
-  }
-
-  .auth-footer a:hover {
-    text-decoration: underline;
-  }
-
-  @media (max-width: 480px) {
-    .auth-container {
-      padding: 1rem;
-    }
-    
-    .auth-card {
-      max-width: 100%;
-    }
+    margin: 0 0 var(--space-2xl);
+    color: var(--c-foreground-muted);
+    font-size: var(--font-size-base);
   }
 </style>
 
