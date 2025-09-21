@@ -2,6 +2,7 @@
 import { AstroFont } from "astro-font";
 import { getCollection } from 'astro:content';
 import Header from "@components/Header/Header.astro";
+import "@styles/theme.css";
 
 interface Props {
   title: string;
@@ -126,7 +127,7 @@ const {
       <link rel="prefetch" href={url.toString()} />
     ))}
 
-    <!-- Styles -->
+    <!-- Additional Styles -->
     {cssFiles.map((file) => (
       <link rel="stylesheet" href={file.toString()} />
     ))}

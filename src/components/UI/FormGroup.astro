@@ -1,0 +1,43 @@
+---
+interface Props {
+  label?: string;
+  id?: string;
+  required?: boolean;
+  error?: string;
+  helpText?: string;
+  class?: string;
+}
+
+const {
+  label,
+  id,
+  required = false,
+  error,
+  helpText,
+  class: className = "",
+} = Astro.props;
+
+const groupClasses = [
+  "form-group",
+  className
+].filter(Boolean).join(" ");
+---
+
+<div class={groupClasses}>
+  {label && (
+    <label for={id}>
+      {label}
+      {required && <span style="color: var(--c-error);"> *</span>}
+    </label>
+  )}
+  
+  <slot />
+  
+  {helpText && !error && (
+    <small>{helpText}</small>
+  )}
+  
+  {error && (
+    <small class="error">{error}</small>
+  )}
+</div>
