@@ -63,7 +63,8 @@ export const onRequest: MiddlewareHandler = async ({ request, url, locals }, nex
         }
         
         // Security: Check if user has admin role
-        if (locals.user.role !== "admin") {
+        // Defensive: Only check role if present on user
+        if (!('role' in locals.user) || (locals.user as any).role !== "admin") {
           return new Response(null, {
             status: 403,
             headers: {

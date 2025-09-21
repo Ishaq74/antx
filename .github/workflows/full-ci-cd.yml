@@ -1,0 +1,91 @@
+name: Full CI/CD (Tests + Build + Deploy)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  full-pipeline:
+    runs-on: ubuntu-latest
+    environment: development
+    env:
+      NODE_ENV: ${{ vars.NODE_ENV }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+      SMTP_HOST: ${{ secrets.SMTP_HOST }}
+      SMTP_PORT: ${{ secrets.SMTP_PORT }}
+      SMTP_USER: ${{ secrets.SMTP_USER }}
+      SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      SMTP_FROM: ${{ secrets.SMTP_FROM }}
+    steps:
+      # 1️⃣ Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: 'npm'
+
+      # 3️⃣ Install dependencies (lockfile synchronisé)
+      - name: Install dependencies
+        run: npm ci
+
+      # 4️⃣ TypeScript & TSX check
+      - name: Check TypeScript types
+        run: npx tsc --noEmit
+
+      # 5️⃣ Generate Prisma client
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      # 6️⃣ Apply Prisma migrations
+      - name: Apply Prisma migrations on NeonDB
+        run: npx prisma migrate deploy
+
+      # 7️⃣ Run unit & integration tests (Vitest)
+      - name: Run Vitest (unit & integration)
+        run: npm run test:unit
+
+      - name: Upload Vitest coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-coverage
+          path: coverage/
+          retention-days: 30
+
+      # 8️⃣ Run E2E tests (Playwright)
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+      # 9️⃣ Security audit
+      - name: Security audit
+        run: npm audit --audit-level high
+
+      # 🔟 Build Astro project
+      - name: Build project
+        run: npm run build
+
+      # 1️⃣1️⃣ Install Vercel CLI
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      # 1️⃣2️⃣ Deploy to Vercel Preview
+      - name: Deploy to Vercel Preview
+        run: vercel --token ${{ secrets.VERCEL_TOKEN }} --confirm

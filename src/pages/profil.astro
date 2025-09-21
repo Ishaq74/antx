@@ -546,9 +546,9 @@ if (!user) {
   }
 </style>
 
-<script>
-  import { authClient } from "@lib/auth-client";
-  import { mapErrorMessage, getSuccessMessage, getLoadingMessage } from "@lib/error-messages";
+<script type="module">
+  import { authClient } from "../src/lib/auth-client";
+  import { mapErrorMessage, getSuccessMessage, getLoadingMessage } from "../src/lib/client/error-messages";
 
   // Error/Success display functions
   function showError(elementId, message) {

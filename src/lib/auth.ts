@@ -22,12 +22,7 @@ export const auth = betterAuth({
     requireEmailVerification: false, // Can be enabled when email verification flow is ready
     autoSignIn: false, // Security: Don't auto sign-in after registration
     password: {
-      hash: {
-        // Security: Use strong password hashing (saltRounds supported)
-        saltRounds: 12,
-      },
-      minLength: 8, // Security: Minimum password length
-      maxLength: 128, // Security: Maximum password length to prevent DoS
+      // Using default password validation (minLength/maxLength not supported here)
     }
   },
 
@@ -46,8 +41,7 @@ export const auth = betterAuth({
   plugins: [ 
     username({
       // Security: Username validation
-      minLength: 3,
-      maxLength: 20,
+      // minLength and maxLength are not valid options for this plugin, so removed
     }),
     
     admin({

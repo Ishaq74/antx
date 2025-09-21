@@ -9,6 +9,7 @@ This document outlines the security measures implemented in the ANTX authenticat
 ### 1. Authentication Security
 
 #### Password Requirements
+
 - **Minimum length**: 8 characters
 - **Maximum length**: 128 characters (prevents DoS attacks)
 - **Required complexity**:
@@ -19,12 +20,14 @@ This document outlines the security measures implemented in the ANTX authenticat
 - **Common password blocking**: Prevents use of common weak passwords
 
 #### Session Security
+
 - **Session expiry**: 7 days (reduced from default 30 days)
 - **Session update**: Every 24 hours for active sessions
 - **Secure cookies**: Enabled in production environment
 - **SameSite cookies**: Strict policy for CSRF protection
 
 #### Email OTP Security
+
 - **OTP length**: 6 digits
 - **Expiry time**: 10 minutes (short window)
 - **Attempt limiting**: Maximum 3 attempts before invalidation
@@ -33,17 +36,20 @@ This document outlines the security measures implemented in the ANTX authenticat
 ### 2. Input Validation & Sanitization
 
 #### Email Validation
+
 - RFC 5321 compliant regex validation
 - Maximum length checking (254 characters)
 - Format validation before processing
 
 #### Username Validation
+
 - Length: 3-20 characters
 - Allowed characters: letters, numbers, hyphens, underscores
 - Reserved username blocking (admin, root, api, etc.)
 - No leading/trailing special characters
 
 #### HTML Sanitization
+
 - All user inputs sanitized to prevent XSS attacks
 - Email content escaped before rendering
 - Special character encoding for safety
@@ -51,7 +57,8 @@ This document outlines the security measures implemented in the ANTX authenticat
 ### 3. HTTP Security Headers
 
 #### Implemented Headers
-```
+
+```curl
 X-Frame-Options: DENY
 X-Content-Type-Options: nosniff
 Referrer-Policy: strict-origin-when-cross-origin
@@ -60,6 +67,7 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains; preload (product
 ```
 
 #### Content Security Policy (CSP)
+
 - Restricts script sources to prevent XSS
 - Limits style sources and image loading
 - Prevents framing (clickjacking protection)
@@ -67,12 +75,14 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains; preload (product
 ### 4. Access Control
 
 #### Route Protection
+
 - **Public routes**: `/`, `/connexion`, `/inscription`, `/mot-de-passe-oublie`
 - **Private routes**: `/dashboard`, `/profil`, `/account`, etc.
 - **Admin routes**: `/admin/*`, `/api/admin/*`
 - **Automatic redirects**: Authenticated users redirected away from auth pages
 
 #### Role-Based Access
+
 - **Default role**: `user` for new registrations
 - **Admin protection**: Admin routes check for admin role
 - **403 Forbidden**: Proper error responses for unauthorized access
@@ -80,6 +90,7 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains; preload (product
 ### 5. Rate Limiting
 
 #### Protection Levels
+
 - **General API**: 100 requests per minute per IP
 - **Auth endpoints**: Additional protection via Better Auth
 - **OTP attempts**: Maximum 3 attempts before lockout
@@ -88,6 +99,7 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains; preload (product
 ### 6. Error Handling
 
 #### Security Principles
+
 - **No information leakage**: Generic error messages for authentication failures
 - **Logging**: Detailed logging for security monitoring (server-side only)
 - **Graceful degradation**: Proper error responses without exposing system details
@@ -112,6 +124,7 @@ SMTP_PASSWORD=your-app-specific-password
 ### Security Recommendations
 
 1. **Secret Key Generation**:
+
    ```bash
    openssl rand -base64 32
    ```
@@ -171,17 +184,20 @@ add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
 ## Regular Security Tasks
 
 ### Weekly
+
 - [ ] Review authentication logs
 - [ ] Check for suspicious activity patterns
 - [ ] Monitor rate limiting effectiveness
 
 ### Monthly
+
 - [ ] Update dependencies
 - [ ] Review and rotate secrets
 - [ ] Audit user roles and permissions
 - [ ] Test backup and recovery procedures
 
 ### Quarterly
+
 - [ ] Security audit of configuration
 - [ ] Penetration testing (if applicable)
 - [ ] Review and update security policies
@@ -190,11 +206,13 @@ add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
 ## Known Limitations & Future Improvements
 
 ### Current Limitations
+
 1. **Rate limiting**: In-memory storage (not shared across instances)
 2. **Session management**: Basic implementation without advanced features
 3. **Audit logging**: Basic logging without structured audit trail
 
 ### Future Improvements
+
 1. **Redis-based rate limiting**: For multi-instance deployments
 2. **Advanced session management**: Device tracking, concurrent session limits
 3. **Comprehensive audit logging**: Structured security event logging

@@ -159,11 +159,9 @@ if (user) {
   </div>
 </BaseLayout>
 
-<!-- All styles now handled by theme.css -->
-
-<script>
-  import { authClient } from "@lib/auth-client";
-  import { mapErrorMessage, getSuccessMessage, getLoadingMessage } from "@lib/error-messages";
+<script type="module">
+  import { authClient } from "../src/lib/auth-client";
+  import { mapErrorMessage, getSuccessMessage, getLoadingMessage } from "../src/lib/client/error-messages";
 
   // Tab switching functionality
   const tabBtns = document.querySelectorAll('.tab-btn');
@@ -300,41 +298,44 @@ if (user) {
     submitBtn.textContent = getLoadingMessage('otp-sending');
     
     try {
-      const { data, error } = await authClient.sendVerificationOtp({
-        email,
-        type: "sign-in"
+      // Utilise le endpoint natif Better Auth
+      await fetch('/email-otp/send-verification-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, type: 'sign-in' })
       });
-      
-      if (error) {
-        showError('otp-error', mapErrorMessage(error));
-      } else {
-        showSuccess('otp-success', getSuccessMessage('otp-sent'));
-        // Show verification form
-        document.getElementById('otp-request-form').style.display = 'none';
-        document.getElementById('otp-verify-form').style.display = 'block';
-      }
+      // Toujours afficher un message générique
+      showSuccess('otp-success', getSuccessMessage('otp-sent'));
+      // Show verification form
+      document.getElementById('otp-request-form').style.display = 'none';
+      document.getElementById('otp-verify-form').style.display = 'block';
     } catch (error) {
-      showError('otp-error', mapErrorMessage(error));
+      // Toujours afficher le message générique
+      showSuccess('otp-success', getSuccessMessage('otp-sent'));
+      document.getElementById('otp-request-form').style.display = 'none';
+      document.getElementById('otp-verify-form').style.display = 'block';
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Envoyer le code';
     }
-  });
-
-  // OTP Verification
-  document.getElementById('otp-verify-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    hideError('otp-verify-error');
-    
-    const formData = new FormData(e.target);
-    const otp = formData.get('otp');
-    const email = document.getElementById('otp-email').value;
-    
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    submitBtn.disabled = true;
-    submitBtn.textContent = getLoadingMessage('otp-verifying');
-    
     try {
+      // Utilise le endpoint natif Better Auth
+      const res = await fetch('/sign-in/email-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp })
+      });
+      if (res.ok) {
+        window.location.href = "/";
+      } else {
+        showError('otp-verify-error', 'Code invalide ou expiré.');
+      }
+    } catch (error) {
+      showError('otp-verify-error', 'Code invalide ou expiré.');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Vérifier le code';
+    }
       const { data, error } = await authClient.signIn.emailOtp({
         email,
         otp
@@ -362,4 +363,6 @@ if (user) {
     document.getElementById('otp-success').style.display = 'none';
     document.getElementById('otp-verify-success').style.display = 'none';
   });
+
+  console.log("Connexion page script loaded");
 </script>

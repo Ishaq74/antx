@@ -132,9 +132,9 @@ if (user) {
   }
 </style>
 
-<script>
-  import { authClient } from "@lib/auth-client";
-  import { mapErrorMessage, getSuccessMessage, getLoadingMessage } from "@lib/error-messages";
+<script type="module">
+  import { authClient } from "../src/lib/auth-client";
+  import { mapErrorMessage, getSuccessMessage, getLoadingMessage } from "../src/lib/client/error-messages";
 
   let currentEmail = '';
 
@@ -227,19 +227,19 @@ if (user) {
     submitBtn.textContent = getLoadingMessage('otp-sending');
     
     try {
-      const { data, error } = await authClient.sendVerificationOtp({
-        email,
-        type: "forgot-password"
+      // Utilise le endpoint natif Better Auth
+      await fetch('/forget-password/email-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
       });
-      
-      if (error) {
-        showError('request-error', mapErrorMessage(error));
-      } else {
-        showSuccess('request-success', getSuccessMessage('otp-sent'));
-        showStep('reset-step');
-      }
+      // Toujours afficher un message générique, même si l’email n’existe pas
+      showSuccess('request-success', "Si un compte existe, un code a été envoyé à cette adresse.");
+      showStep('reset-step');
     } catch (error) {
-      showError('request-error', mapErrorMessage(error));
+      // Toujours afficher le message générique
+      showSuccess('request-success', "Si un compte existe, un code a été envoyé à cette adresse.");
+      showStep('reset-step');
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Envoyer le code';
@@ -267,19 +267,21 @@ if (user) {
     submitBtn.textContent = getLoadingMessage('password-resetting');
     
     try {
-      const { data, error } = await authClient.resetPassword({
-        newPassword,
-        otp
+      // Utilise le endpoint natif Better Auth
+      const res = await fetch('/email-otp/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: currentEmail, otp, password: newPassword })
       });
-      
-      if (error) {
-        showError('reset-error', mapErrorMessage(error));
-      } else {
+      if (res.ok) {
         showSuccess('reset-success', getSuccessMessage('password-reset'));
         showStep('success-step');
+      } else {
+        // Affiche un message d'erreur générique
+        showError('reset-error', 'Impossible de réinitialiser le mot de passe. Vérifiez le code ou réessayez.');
       }
     } catch (error) {
-      showError('reset-error', mapErrorMessage(error));
+      showError('reset-error', 'Impossible de réinitialiser le mot de passe. Vérifiez le code ou réessayez.');
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Réinitialiser le mot de passe';

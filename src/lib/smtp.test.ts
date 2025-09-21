@@ -39,9 +39,9 @@ describe('SMTP Utilities', () => {
     });
 
     it('should handle authentication errors', async () => {
-      const authError = new Error('Authentication failed');
-      authError.code = 'EAUTH';
-      mockTransporter.verify.mockRejectedValue(authError);
+  const authError = new Error('Authentication failed');
+  (authError as any).code = 'EAUTH';
+  mockTransporter.verify.mockRejectedValue(authError);
 
       const result = await testSmtpConnection();
 
@@ -50,9 +50,9 @@ describe('SMTP Utilities', () => {
     });
 
     it('should handle connection timeout errors', async () => {
-      const timeoutError = new Error('Connection timeout');
-      timeoutError.code = 'ETIMEDOUT';
-      mockTransporter.verify.mockRejectedValue(timeoutError);
+  const timeoutError = new Error('Connection timeout');
+  (timeoutError as any).code = 'ETIMEDOUT';
+  mockTransporter.verify.mockRejectedValue(timeoutError);
 
       const result = await testSmtpConnection();
 
@@ -61,9 +61,9 @@ describe('SMTP Utilities', () => {
     });
 
     it('should handle network errors', async () => {
-      const networkError = new Error('Network error');
-      networkError.code = 'ENOTFOUND';
-      mockTransporter.verify.mockRejectedValue(networkError);
+  const networkError = new Error('Network error');
+  (networkError as any).code = 'ENOTFOUND';
+  mockTransporter.verify.mockRejectedValue(networkError);
 
       const result = await testSmtpConnection();
 
@@ -72,9 +72,9 @@ describe('SMTP Utilities', () => {
     });
 
     it('should handle connection refusal', async () => {
-      const refusedError = new Error('Connection refused');
-      refusedError.code = 'ECONNREFUSED';
-      mockTransporter.verify.mockRejectedValue(refusedError);
+  const refusedError = new Error('Connection refused');
+  (refusedError as any).code = 'ECONNREFUSED';
+  mockTransporter.verify.mockRejectedValue(refusedError);
 
       const result = await testSmtpConnection();
 

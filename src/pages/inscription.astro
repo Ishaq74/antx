@@ -166,9 +166,9 @@ if (user) {
 
 <!-- All styles now handled by theme.css -->
 
-<script>
-  import { authClient } from "@lib/auth-client";
-  import { mapErrorMessage, getSuccessMessage, getLoadingMessage } from "@lib/error-messages";
+<script type="module">
+  import { authClient } from "../src/lib/auth-client";
+  import { mapErrorMessage, getSuccessMessage, getLoadingMessage } from "../src/lib/client/error-messages";
 
   // Organization option handling
   const orgOptions = document.querySelectorAll('input[name="orgOption"]');
@@ -319,13 +319,16 @@ if (user) {
         // Check if email verification is requested
         if (formData.get('emailVerification') === 'on') {
           try {
-            await authClient.sendVerificationOtp({
-              email: formData.get('email'),
-              type: "email-verification"
+            // Utilise le endpoint natif Better Auth
+            await fetch('/email-otp/send-verification-otp', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: formData.get('email'), type: 'email-verification' })
             });
+            // Toujours afficher un message générique
             showSuccess(getSuccessMessage('signup-verify'));
           } catch (verifyError) {
-            showSuccess(getSuccessMessage('signup'));
+            showSuccess(getSuccessMessage('signup-verify'));
           }
         } else {
           showSuccess(getSuccessMessage('signup') + ' Redirection...');
