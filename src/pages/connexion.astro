@@ -298,6 +298,9 @@ if (user) {
     submitBtn.textContent = getLoadingMessage('otp-sending');
     
     try {
+      // Store email for OTP verification step
+      sessionStorage.setItem('otpEmail', email);
+      
       // Utilise le endpoint natif Better Auth
       await fetch('/email-otp/send-verification-otp', {
         method: 'POST',
@@ -318,6 +321,21 @@ if (user) {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Envoyer le code';
     }
+  });
+
+  // OTP Verification
+  document.getElementById('otp-verify-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideError('otp-verify-error');
+    
+    const formData = new FormData(e.target);
+    const otp = formData.get('otp');
+    const email = sessionStorage.getItem('otpEmail'); // Store email from previous step
+    
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = getLoadingMessage('otp-verifying');
+    
     try {
       // Utilise le endpoint natif Better Auth
       const res = await fetch('/sign-in/email-otp', {
@@ -332,22 +350,6 @@ if (user) {
       }
     } catch (error) {
       showError('otp-verify-error', 'Code invalide ou expiré.');
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Vérifier le code';
-    }
-      const { data, error } = await authClient.signIn.emailOtp({
-        email,
-        otp
-      });
-      
-      if (error) {
-        showError('otp-verify-error', mapErrorMessage(error));
-      } else {
-        window.location.href = "/";
-      }
-    } catch (error) {
-      showError('otp-verify-error', mapErrorMessage(error));
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Vérifier le code';
