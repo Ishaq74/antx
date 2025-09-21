@@ -1,0 +1,38 @@
+name: Deploy Preview
+
+on:
+  push:
+    branches:
+      - main   # ou la branche que tu veux tester en Preview
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    environment: development   # GitHub Environment, correspond à tes variables et secrets dev
+    env:
+      NODE_ENV: ${{ vars.NODE_ENV }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+      SMTP_HOST: ${{ secrets.SMTP_HOST }}
+      SMTP_PORT: ${{ secrets.SMTP_PORT }}
+      SMTP_USER: ${{ secrets.SMTP_USER }}
+      SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      SMTP_FROM: ${{ secrets.SMTP_FROM }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Apply migrations on NeonDB
+        run: npx prisma migrate deploy
+
+      - name: Build project
+        run: npm run build
+
+      - name: Deploy to Vercel Preview
+        run: vercel --previews --token ${{ secrets.VERCEL_TOKEN }}
