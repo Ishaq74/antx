@@ -1,0 +1,33 @@
+<a href="#" class="branding">
+    <div class="branding__logo">H</div>
+    <div class="branding__text">
+    <div class="branding__title">Header Ultime</div>
+    <div class="branding__slogan">The God Header Project</div>
+    </div>
+</a>
+
+<style>
+.branding {
+display: flex;
+align-items: center;
+gap: 0.75rem;
+text-decoration: none;
+}
+.branding__logo {
+width: 40px;
+height: 40px;
+border-radius: 50%;
+display: grid;
+place-content: center;
+font-size: 1.5rem;
+font-weight: 800;
+color: white;
+background: linear-gradient(45deg, var(--c-primary), var(--c-secondary));
+}
+.branding__text { display: none; }
+@media (min-width: 640px) {
+.branding__text { display: block; }
+.branding__title { font-weight: 700; font-size: 1.125rem; color: var(--c-foreground); }
+.branding__slogan { font-size: 0.75rem; color: var(--c-muted-foreground); }
+}
+</style>

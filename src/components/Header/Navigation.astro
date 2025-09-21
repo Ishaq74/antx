@@ -1,0 +1,187 @@
+---
+import ThemeSwitcher from "@components/Header/ThemeSwitcher.astro";
+import UserMenu from "@components/Header/UserMenu.astro";
+---
+<!-- Desktop Navigation -->
+<nav class="desktop-nav" aria-label="Main navigation">
+  <ul class="desktop-nav__list">
+    <li>
+      <a href="#" class="desktop-nav__link" aria-haspopup="true" aria-expanded="false">
+        Products
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+        </svg>
+      </a>
+      <ul class="dropdown">
+        <li><a href="#analytics" class="desktop-nav__link" aria-current="page">Analytics</a></li>
+        <li><a href="#commerce" class="desktop-nav__link">Commerce</a></li>
+        <li>
+          <a href="#" class="desktop-nav__link" aria-haspopup="true" aria-expanded="false">
+            Platform
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+            </svg>
+          </a>
+          <ul class="dropdown level-2">
+            <li><a href="#api" class="desktop-nav__link">API</a></li>
+            <li><a href="#integrations" class="desktop-nav__link">Integrations</a></li>
+            <li><a href="#security" class="desktop-nav__link">Security</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#solutions" class="desktop-nav__link">Solutions</a></li>
+    <li><a href="#pricing" class="desktop-nav__link">Pricing</a></li>
+  </ul>
+</nav>
+
+<!-- Right Controls + Mobile Menu -->
+<div class="right-controls">
+  <ThemeSwitcher />
+  <UserMenu />
+    <label for="mobile-menu-toggle" class="mobile-menu-toggle">
+    <div class="hamburger-icon">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  </label>
+</div>
+
+<!-- Mobile Navigation Container -->
+<div class="mobile-nav-container">
+  <input type="checkbox" id="mobile-menu-toggle" class="mobile-menu-checkbox" aria-label="Ouvrir/fermer le menu principal" />
+
+
+  <div class="mobile-nav-overlay"></div>
+
+  <nav class="mobile-nav" id="mobile-nav" aria-hidden="true">
+    <div class="mobile-nav__header">
+      <span>Menu</span>
+      <label for="mobile-menu-toggle" class="mobile-nav__close-btn" aria-label="Fermer le menu">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:24px;height:24px;">
+          <path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clip-rule="evenodd" />
+        </svg>
+      </label>
+    </div>
+    <div class="mobile-nav__content">
+      <ul>
+        <li>
+          <details class="mobile-nav-item">
+            <summary class="mobile-nav__link">
+              Products
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+              </svg>
+            </summary>
+            <ul class="mobile-submenu">
+              <li><a href="#analytics" class="mobile-nav__link">Analytics</a></li>
+              <li><a href="#commerce" class="mobile-nav__link">Commerce</a></li>
+              <li>
+                <details class="mobile-nav-item">
+                  <summary class="mobile-nav__link">
+                    Platform
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                    </svg>
+                  </summary>
+                  <ul class="mobile-submenu">
+                    <li><a href="#api" class="mobile-nav__link">API</a></li>
+                    <li><a href="#integrations" class="mobile-nav__link">Integrations</a></li>
+                    <li><a href="#security" class="mobile-nav__link">Security</a></li>
+                  </ul>
+                </details>
+              </li>
+            </ul>
+          </details>
+        </li>
+        <li><a href="#solutions" class="mobile-nav__link">Solutions</a></li>
+        <li><a href="#pricing" class="mobile-nav__link">Pricing</a></li>
+      </ul>
+    </div>
+  </nav>
+</div>
+
+<style is:global>
+  /* --- Desktop Navigation --- */
+  .desktop-nav { display: none; }
+  @media (min-width: 980px) {
+    .desktop-nav { display: flex; align-items: center; }
+    .desktop-nav__list { display: flex; gap: 0.25rem; list-style: none; margin: 0; padding: 0; }
+    .desktop-nav__list li { position: relative; }
+    .desktop-nav__link {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.5rem 1rem; border-radius: 6px;
+      font-size: 0.95rem; font-weight: 500;
+      color: var(--c-muted-foreground);
+      text-decoration: none;
+      transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+    }
+    .desktop-nav__link:hover,
+    .desktop-nav__link:focus,
+    .desktop-nav__link[aria-current="page"] {
+      color: var(--c-foreground); background-color: var(--c-primary-highlight); outline: none;
+    }
+    .desktop-nav__link svg { width:16px;height:16px;transition:transform var(--transition-speed) ease; }
+    .desktop-nav__list li:hover>.dropdown,
+    .desktop-nav__list li:focus-within>.dropdown {
+      opacity:1; visibility:visible; transform:translateY(0);
+    }
+    .desktop-nav__list .dropdown { top:100%;left:0;margin-top:0.5rem; }
+    .desktop-nav__list .dropdown.level-2 { top:-0.5rem;left:100%;margin-top:0; }
+    .dropdown li:hover>.dropdown.level-2,
+    .dropdown li:focus-within>.dropdown.level-2 { opacity:1; visibility:visible; transform:translateY(0); }
+    .dropdown .desktop-nav__link { width:100%; justify-content:flex-start; }
+    li:hover>a>svg:last-child, li:focus-within>a>svg:last-child { transform:rotate(180deg); }
+    li:hover>.dropdown li:hover>a>svg, li:focus-within>.dropdown li:focus-within>a>svg { transform:rotate(-90deg); }
+  }
+
+  /* --- Right Controls --- */
+  .right-controls {
+    display: grid;
+    grid-auto-flow: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    z-index: 1001;
+  }
+  @media (min-width:640px) { .right-controls { gap:1rem; } }
+
+  /* --- Mobile Menu --- */
+  .mobile-menu-container { position:relative; }
+  .mobile-menu-checkbox { display:none; }
+  .mobile-menu-toggle { display:flex;align-items:center;justify-content:center;z-index:1002;background:none;border:none;padding:0.5rem;cursor:pointer; }
+  @media (min-width:980px){ .mobile-menu-toggle{display:none;} }
+  .hamburger-icon { display:flex;flex-direction:column;justify-content:space-between;width:24px;height:18px; }
+  .hamburger-icon span { display:block;width:100%;height:2px;background-color:var(--c-foreground);border-radius:2px;transition:transform var(--transition-speed) ease,opacity var(--transition-speed) ease; }
+  .mobile-menu-checkbox:checked ~ .mobile-menu-toggle .hamburger-icon span:nth-child(1){ transform:translateY(8px) rotate(45deg); }
+  .mobile-menu-checkbox:checked ~ .mobile-menu-toggle .hamburger-icon span:nth-child(2){ opacity:0; }
+  .mobile-menu-checkbox:checked ~ .mobile-menu-toggle .hamburger-icon span:nth-child(3){ transform:translateY(-8px) rotate(-45deg); }
+
+  .mobile-nav-overlay {
+    position:fixed;top:0;left:0;right:0;bottom:0;
+    background-color:rgba(0,0,0,0.5);z-index:999;
+    opacity:0;visibility:hidden;
+    transition:opacity var(--transition-speed) ease,visibility var(--transition-speed) ease;
+  }
+  .mobile-menu-checkbox:checked ~ .mobile-nav-overlay{ opacity:1; visibility:visible; }
+
+  .mobile-nav { position:fixed;top:0;right:0;bottom:0;width:min(80%,320px);background-color:var(--c-card); transform:translateX(100%); transition:transform var(--transition-speed) ease; display:flex;flex-direction:column; z-index:1003; }
+  .mobile-menu-checkbox:checked ~ .mobile-nav{ transform:translateX(0); }
+  .mobile-nav__header { display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem; height:var(--header-height); border-bottom:1px solid var(--c-border); font-weight:600;background-color:var(--c-card);}
+  .mobile-nav__close-btn { display:flex;align-items:center;justify-content:center;color:var(--c-muted-foreground);padding:0.25rem;margin:-0.25rem;cursor:pointer;background:none;border:none;transition:color var(--transition-speed) ease; }
+  .mobile-nav__close-btn:hover, .mobile-nav__close-btn:focus{ color:var(--c-foreground); outline:none; }
+  .mobile-nav__content{ padding:1.5rem; overflow-y:auto; flex-grow:1;}
+  .mobile-nav__content ul{ list-style:none;margin:0;padding:0; }
+
+  .mobile-nav-item{ margin-bottom:0.5rem; }
+  .mobile-nav-item summary{ display:flex;justify-content:space-between;align-items:center;padding:0.75rem 0;font-weight:500;color:var(--c-muted-foreground);cursor:pointer;list-style:none;-webkit-user-select:none;user-select:none;transition:color var(--transition-speed) ease; }
+  .mobile-nav-item[open] summary{ color:var(--c-primary); }
+  .mobile-nav-item[open] summary svg{ transform:rotate(180deg); }
+  .mobile-nav__link{ display:flex;justify-content:space-between;align-items:center;padding:0.75rem 0;font-weight:500;color:var(--c-muted-foreground);text-decoration:none;transition:color var(--transition-speed) ease; }
+  .mobile-nav__link:hover, .mobile-nav__link:focus, .mobile-nav__link[aria-current="page"]{ color:var(--c-primary); outline:none; }
+  .mobile-nav__link svg{ width:20px;height:20px;transition:transform var(--transition-speed) ease; }
+  .mobile-submenu{ padding-left:1rem; list-style:none;margin:0; }
+  .mobile-nav-item:not([open])>.mobile-submenu{ display:none; }
+  .mobile-nav-item[open]>.mobile-submenu{ display:block; }
+</style>

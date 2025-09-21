@@ -1,0 +1,116 @@
+<label for="theme-switcher" class="theme-switcher-label" aria-label="Toggle dark mode">
+        <input type="checkbox" id="theme-switcher" class="theme-switcher-input">
+        <span class="theme-switcher-slider">
+            <!-- Light mode: sky and clouds -->
+            <span class="theme-bg theme-bg--day" aria-hidden="true">
+                <span class="cloud" style="top:7px; left:10px;"></span>
+                <span class="cloud" style="top:15px; left:28px; width:14px; height:8px;"></span>
+                <span class="sky" style="top:0; left:0;"></span>
+            </span>
+            <!-- Dark mode: stars -->
+            <span class="theme-bg theme-bg--night" aria-hidden="true">
+                <span class="star" style="top:6px; left:12px;"></span>
+                <span class="star" style="top:18px; left:30px; width:2px; height:2px;"></span>
+                <span class="star" style="top:12px; left:22px; width:1.5px; height:1.5px;"></span>
+                <span class="star" style="top:9px; left:32px; width:1.2px; height:1.2px;"></span>
+            </span>
+        </span>
+        <span class="theme-switcher-icon sun" aria-hidden="true" style="font-size: 1.2rem; left: 6px;">☀️</span>
+        <span class="theme-switcher-icon moon" aria-hidden="true" style="font-size: 1.2rem; right: 6px;">🌙</span>
+</label>
+<style is:global>
+.theme-switcher-label {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 28px;
+    cursor: pointer;
+}
+.theme-switcher-input { opacity: 0; width: 0; height: 0; }
+/* Remove slider background and knob for a minimal emoji-only switcher */
+.theme-switcher-slider {
+    position: absolute;
+    inset: 0;
+    background-color: #e2e8f0;
+    border-radius: 34px;
+    transition: background-color var(--transition-speed) ease;
+    z-index: 0;
+    overflow: hidden;
+}
+[data-theme="dark"] .theme-switcher-slider {
+    background-color: #334155;
+}
+.theme-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0;
+    transition: opacity var(--transition-speed) ease;
+}
+.theme-bg--day {
+    opacity: 1;
+}
+[data-theme="dark"] .theme-bg--day {
+    opacity: 0;
+}
+.theme-bg--night {
+    opacity: 0;
+}
+[data-theme="dark"] .theme-bg--night {
+    opacity: 1;
+}
+.cloud {
+    position: absolute;
+    width: 12px;
+    height: 7px;
+    background: #fff;
+    border-radius: 50px;
+    box-shadow: 4px 0 0 0 #fff, 8px 0 0 0 #fff;
+    opacity: 0.7;
+}
+.sky {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, #bae6fd 0%, #e0f2fe 100%);
+    z-index: -1;
+}
+.star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: #fff;
+    border-radius: 50%;
+    opacity: 0.8;
+    box-shadow: 0 0 2px 1px #fff;
+}
+.theme-switcher-icon { position: absolute; top: 50%; transform: translateY(-50%); color: var(--c-accent); }
+.theme-switcher-icon.sun { left: 6px; opacity: 1; }
+.theme-switcher-icon.moon { right: 6px; opacity: 0; color: var(--c-primary); }
+[data-theme="dark"] .theme-switcher-icon.sun { opacity: 0; }
+[data-theme="dark"] .theme-switcher-icon.moon { opacity: 1; }
+</style>
+
+<script type="module">
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Theme Switcher ---
+    const themeSwitcher = document.getElementById('theme-switcher');
+    
+    const applyTheme = (theme) => {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        themeSwitcher.checked = theme === 'dark';
+    };
+
+    // Set initial state of the checkbox
+    const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    applyTheme(savedTheme);
+
+    themeSwitcher.addEventListener('change', (e) => {
+        applyTheme(e.target.checked ? 'dark' : 'light');
+    });
+});
+</script>

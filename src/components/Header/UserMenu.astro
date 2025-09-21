@@ -1,0 +1,130 @@
+---
+export const prerender = false;
+import { authClient } from "@lib/auth-client";
+
+let user = Astro.locals.user;
+
+const handleLogout = async (event: Event) => {
+  event.preventDefault();
+  await authClient.signOut();
+  window.location.href = "/connexion";
+};
+---
+
+{user ? (
+  <div class="user-menu">
+    <button class="user-menu__trigger" aria-haspopup="true" aria-expanded="false" aria-label="Menu utilisateur">
+      <img src={user.image ?? "https://picsum.photos/id/237/100/100"} alt="Avatar de l'utilisateur" />
+    </button>
+    <ul class="dropdown">
+      <li>
+        <a href="/profil" class="user-menu__link">{user.name ?? "Profil"}</a>
+      </li>
+      {"role" in user && user.role === "admin" && (
+        <li>
+          <a href="/admin" class="user-menu__link">Dashboard</a>
+        </li>
+      )}
+      <li>
+        <a href="#" class="user-menu__link" onclick={handleLogout}>Déconnexion</a>
+      </li>
+    </ul>
+  </div>
+) : (
+  <a href="/connexion" class="user-menu__trigger" aria-label="Se connecter">
+    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="20" cy="20" r="20" fill="#e6f0ff" />
+      <path d="M20 12a5 5 0 1 1 0 10a5 5 0 0 1 0-10zm0 12c-5.33 0-8 2.67-8 4v2h16v-2c0-1.33-2.67-4-8-4z" fill="#007bff" />
+    </svg>
+  </a>
+)}
+
+<style is:global>
+  :root {
+    --transition-speed: 0.2s;
+    --c-primary: #007bff;
+    --c-primary-highlight: #e6f0ff;
+    --c-foreground: #333;
+    --c-muted-foreground: #666;
+  }
+
+  .user-menu {
+    position: relative;
+    display: inline-block; /* Changé de block à inline-block pour meilleure intégration */
+  }
+
+  .user-menu__trigger {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid transparent;
+    background: none;
+    cursor: pointer;
+    transition: border-color var(--transition-speed) ease;
+  }
+
+  .user-menu__trigger:hover,
+  .user-menu__trigger:focus-visible {
+    border-color: var(--c-primary);
+    outline: none; /* Supprime outline par défaut, border fait le job */
+  }
+
+  .user-menu__trigger img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .user-menu .dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    width: 240px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease, visibility var(--transition-speed) ease;
+    list-style: none;
+    padding: 0.5rem 0;
+    margin: 0;
+    z-index: 1000;
+  }
+
+  /* Afficher le dropdown au hover ou focus */
+  .user-menu:hover .dropdown,
+  .user-menu:focus-within .dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .user-menu__link {
+    display: block;
+    width: 100%;
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--c-muted-foreground);
+    text-decoration: none;
+    transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+  }
+
+  .user-menu__link:hover,
+  .user-menu__link:focus {
+    color: var(--c-foreground);
+    background-color: var(--c-primary-highlight);
+    outline: none;
+  }
+
+  @media (max-width: 420px) {
+    .user-menu .dropdown {
+      width: calc(100vw - 3rem);
+      max-width: 280px;
+    }
+  }
+</style>
