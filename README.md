@@ -7,6 +7,7 @@
 npm install @prisma/client
 - Better-Auth -> with npm install better-auth
 - NodeMailer -> with npm install nodemailer npm install --save-dev @types/nodemailer
+- Vercel -> with npm install @astrojs/vercel
 
 npx @better-auth/cli generate → met à jour le schéma
 npx prisma migrate dev ou npx prisma db push → applique le schéma à ta base.
