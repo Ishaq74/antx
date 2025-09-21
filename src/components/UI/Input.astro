@@ -1,0 +1,45 @@
+---
+interface Props {
+  type?: string;
+  id?: string;
+  name?: string;
+  value?: string;
+  placeholder?: string;
+  required?: boolean;
+  disabled?: boolean;
+  error?: boolean;
+  class?: string;
+  [key: string]: any;
+}
+
+const {
+  type = "text",
+  id,
+  name,
+  value,
+  placeholder,
+  required = false,
+  disabled = false,
+  error = false,
+  class: className = "",
+  ...rest
+} = Astro.props;
+
+const inputClasses = [
+  "input",
+  error && "input--error",
+  className
+].filter(Boolean).join(" ");
+---
+
+<input
+  type={type}
+  id={id}
+  name={name}
+  value={value}
+  placeholder={placeholder}
+  required={required}
+  disabled={disabled}
+  class={inputClasses}
+  {...rest}
+/>

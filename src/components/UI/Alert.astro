@@ -1,0 +1,29 @@
+---
+interface Props {
+  variant?: "success" | "warning" | "error" | "info";
+  class?: string;
+  id?: string;
+  style?: string;
+}
+
+const {
+  variant = "info",
+  class: className = "",
+  id,
+  style,
+} = Astro.props;
+
+const alertClasses = [
+  "alert",
+  `alert--${variant}`,
+  className
+].filter(Boolean).join(" ");
+---
+
+<div
+  id={id}
+  class={alertClasses}
+  style={style}
+>
+  <slot />
+</div>

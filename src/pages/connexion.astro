@@ -1,6 +1,10 @@
 ---
 export const prerender = false;
 import BaseLayout from "@layouts/BaseLayout.astro";
+import Input from "@components/UI/Input.astro";
+import Button from "@components/UI/Button.astro";
+import Alert from "@components/UI/Alert.astro";
+import FormGroup from "@components/UI/FormGroup.astro";
 
 // Check if user is already authenticated
 const user = Astro.locals.user;
@@ -26,77 +30,74 @@ if (user) {
       <!-- Email/Password Form -->
       <div class="tab-content active" id="email-tab">
         <form id="email-form" class="auth-form">
-          <div class="form-group">
-            <label for="email">Adresse email</label>
-            <input 
-              type="email" 
-              id="email" 
-              name="email" 
-              required 
+          <FormGroup label="Adresse email" id="email" required>
+            <Input
+              type="email"
+              id="email"
+              name="email"
               placeholder="votre@email.com"
+              required
             />
-          </div>
+          </FormGroup>
           
-          <div class="form-group">
-            <label for="password">Mot de passe</label>
-            <input 
-              type="password" 
-              id="password" 
-              name="password" 
-              required 
+          <FormGroup label="Mot de passe" id="password" required>
+            <Input
+              type="password"
+              id="password"
+              name="password"
               placeholder="Votre mot de passe"
+              required
             />
-          </div>
+          </FormGroup>
           
           <div class="form-options">
             <label class="checkbox-label">
               <input type="checkbox" name="rememberMe" checked />
               <span>Se souvenir de moi</span>
             </label>
-            <a href="/mot-de-passe-oublie" class="forgot-link">Mot de passe oublié ?</a>
+            <a href="/mot-de-passe-oublie" class="link link--small">Mot de passe oublié ?</a>
           </div>
           
-          <button type="submit" class="auth-btn">Se connecter</button>
+          <Button type="submit" fullWidth>Se connecter</Button>
           
-          <div class="auth-error" id="email-error" style="display: none;"></div>
+          <Alert variant="error" id="email-error" style="display: none;" />
         </form>
       </div>
 
       <!-- Username/Password Form -->
       <div class="tab-content" id="username-tab">
         <form id="username-form" class="auth-form">
-          <div class="form-group">
-            <label for="username">Nom d'utilisateur</label>
-            <input 
-              type="text" 
-              id="username" 
-              name="username" 
-              required 
+          <FormGroup label="Nom d'utilisateur" id="username" required>
+            <Input
+              type="text"
+              id="username"
+              name="username"
               placeholder="votre_nom_utilisateur"
+              required
             />
-          </div>
+          </FormGroup>
           
-          <div class="form-group">
-            <label for="password-username">Mot de passe</label>
-            <input 
-              type="password" 
-              id="password-username" 
-              name="password" 
-              required 
+          <FormGroup label="Mot de passe" id="password-username" required>
+            <Input
+              type="password"
+              id="password-username"
+              name="password"
               placeholder="Votre mot de passe"
+              required
             />
-          </div>
+          </FormGroup>
           
           <div class="form-options">
             <label class="checkbox-label">
               <input type="checkbox" name="rememberMe" checked />
               <span>Se souvenir de moi</span>
             </label>
+            <a href="/mot-de-passe-oublie" class="link link--small">Mot de passe oublié ?</a>
           </div>
           
-          <button type="submit" class="auth-btn">Se connecter</button>
+          <Button type="submit" fullWidth>Se connecter</Button>
           
-          <div class="auth-error" id="username-error" style="display: none;"></div>
+          <Alert variant="error" id="username-error" style="display: none;" />
         </form>
       </div>
 
@@ -107,20 +108,19 @@ if (user) {
             Recevez un code de connexion sécurisé par email
           </p>
           
-          <div class="form-group">
-            <label for="otp-email">Adresse email</label>
-            <input 
-              type="email" 
-              id="otp-email" 
-              name="email" 
-              required 
+          <FormGroup label="Adresse email" id="otp-email" required>
+            <Input
+              type="email"
+              id="otp-email"
+              name="email"
               placeholder="votre@email.com"
+              required
             />
-          </div>
+          </FormGroup>
           
-          <button type="submit" class="auth-btn">Envoyer le code</button>
+          <Button type="submit" fullWidth>Envoyer le code</Button>
           
-          <div class="auth-error" id="otp-error" style="display: none;"></div>
+          <Alert variant="error" id="otp-error" style="display: none;" />
         </form>
 
         <!-- OTP Verification Form (hidden initially) -->
@@ -129,264 +129,33 @@ if (user) {
             Entrez le code reçu par email
           </p>
           
-          <div class="form-group">
-            <label for="otp-code">Code de vérification</label>
-            <input 
-              type="text" 
-              id="otp-code" 
-              name="otp" 
-              required 
+          <FormGroup label="Code de vérification" id="otp-code" required>
+            <Input
+              type="text"
+              id="otp-code"
+              name="otp"
               placeholder="000000"
               maxlength="6"
               pattern="[0-9]{6}"
+              required
             />
-          </div>
+          </FormGroup>
           
-          <button type="submit" class="auth-btn">Vérifier le code</button>
-          <button type="button" id="back-to-email" class="auth-btn-secondary">Retour</button>
+          <Button type="submit" fullWidth>Vérifier le code</Button>
+          <Button type="button" variant="secondary" fullWidth id="back-to-email">Retour</Button>
           
-          <div class="auth-error" id="otp-verify-error" style="display: none;"></div>
+          <Alert variant="error" id="otp-verify-error" style="display: none;" />
         </form>
       </div>
 
       <div class="auth-footer">
-        <p>Pas encore de compte ? <a href="/inscription">Créer un compte</a></p>
+        <p>Pas encore de compte ? <a href="/inscription" class="link">Créer un compte</a></p>
       </div>
     </div>
   </div>
 </BaseLayout>
 
-<style>
-  .auth-container {
-    min-height: calc(100vh - var(--header-height));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  }
-
-  .auth-card {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    width: 100%;
-    max-width: 420px;
-    overflow: hidden;
-  }
-
-  .auth-header {
-    text-align: center;
-    padding: 2rem 2rem 1rem;
-  }
-
-  .auth-header h1 {
-    margin: 0 0 0.5rem;
-    color: #1a202c;
-    font-size: 1.875rem;
-    font-weight: 700;
-  }
-
-  .auth-header p {
-    margin: 0;
-    color: #6b7280;
-    font-size: 1rem;
-  }
-
-  .auth-tabs {
-    display: flex;
-    border-bottom: 1px solid #e5e7eb;
-    margin: 0 2rem;
-  }
-
-  .tab-btn {
-    flex: 1;
-    padding: 0.75rem 1rem;
-    border: none;
-    background: none;
-    cursor: pointer;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #6b7280;
-    border-bottom: 2px solid transparent;
-    transition: all 0.2s ease;
-  }
-
-  .tab-btn:hover {
-    color: #374151;
-  }
-
-  .tab-btn.active {
-    color: #3b82f6;
-    border-bottom-color: #3b82f6;
-  }
-
-  .tab-content {
-    display: none;
-    padding: 2rem;
-  }
-
-  .tab-content.active {
-    display: block;
-  }
-
-  .auth-form {
-    space-y: 1.5rem;
-  }
-
-  .form-group {
-    margin-bottom: 1.5rem;
-  }
-
-  .form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-    color: #374151;
-    font-size: 0.875rem;
-  }
-
-  .form-group input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 1rem;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .form-group input:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
-
-  .form-options {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-  }
-
-  .checkbox-label {
-    display: flex;
-    align-items: center;
-    font-size: 0.875rem;
-    color: #374151;
-    cursor: pointer;
-  }
-
-  .checkbox-label input {
-    margin-right: 0.5rem;
-    width: auto;
-  }
-
-  .forgot-link {
-    font-size: 0.875rem;
-    color: #3b82f6;
-    text-decoration: none;
-  }
-
-  .forgot-link:hover {
-    text-decoration: underline;
-  }
-
-  .auth-btn {
-    width: 100%;
-    padding: 0.75rem;
-    background: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-  }
-
-  .auth-btn:hover {
-    background: #2563eb;
-  }
-
-  .auth-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .auth-btn-secondary {
-    width: 100%;
-    padding: 0.75rem;
-    background: transparent;
-    color: #6b7280;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    margin-top: 0.75rem;
-  }
-
-  .auth-btn-secondary:hover {
-    background: #f9fafb;
-    border-color: #9ca3af;
-  }
-
-  .auth-error {
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    color: #dc2626;
-    padding: 0.75rem;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    margin-top: 1rem;
-  }
-
-  .auth-footer {
-    text-align: center;
-    padding: 1.5rem 2rem 2rem;
-    border-top: 1px solid #e5e7eb;
-    background: #f9fafb;
-  }
-
-  .auth-footer p {
-    margin: 0;
-    font-size: 0.875rem;
-    color: #6b7280;
-  }
-
-  .auth-footer a {
-    color: #3b82f6;
-    text-decoration: none;
-    font-weight: 500;
-  }
-
-  .auth-footer a:hover {
-    text-decoration: underline;
-  }
-
-  .otp-description {
-    text-align: center;
-    color: #6b7280;
-    font-size: 0.875rem;
-    margin-bottom: 1.5rem;
-  }
-
-  @media (max-width: 480px) {
-    .auth-container {
-      padding: 1rem;
-    }
-    
-    .auth-card {
-      max-width: 100%;
-    }
-    
-    .tab-btn {
-      font-size: 0.75rem;
-      padding: 0.5rem;
-    }
-  }
-</style>
+<!-- All styles now handled by theme.css -->
 
 <script>
   import { authClient } from "@lib/auth-client";

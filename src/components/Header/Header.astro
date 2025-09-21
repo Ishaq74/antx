@@ -12,19 +12,6 @@ import Brand from "./Brand.astro";
 
 
 <style is:global>
-:root {
-  --header-height: 4rem;
-  --transition-speed: 0.2s;
-  --c-primary: #007bff;
-  --c-secondary: #6f42c1;
-  --c-card: #ffffff;
-  --c-border: #e2e8f0;
-  --c-foreground: #1a202c;
-  --c-muted-foreground: #4a5568;
-  --c-primary-highlight: #e6f0ff;
-  --c-shadow-color: 0, 0, 0;
-}
-
 .main-header {
   position: sticky;
   top: 0;
@@ -34,24 +21,28 @@ import Brand from "./Brand.astro";
   background-color: color-mix(in srgb, var(--c-card), transparent 15%);
   border-bottom: 1px solid var(--c-border);
   backdrop-filter: blur(8px);
-  padding: 0 1rem;
+  padding: 0 var(--space-lg);
 }
+
 /* Desktop grid: brand left, nav centered, controls right */
 .main-header .container {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
   height: 100%;
-  max-width: 1200px;
+  max-width: var(--container-max-width);
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 var(--space-lg);
 }
+
 .main-header .container > .branding {
   justify-self: start;
 }
+
 .main-header .container > nav {
   justify-self: center;
 }
+
 .main-header .container > .right-controls {
   justify-self: end;
 }
@@ -59,41 +50,20 @@ import Brand from "./Brand.astro";
 @media (max-width: 700px) {
   .main-header .container {
     grid-template-columns: auto 1fr;
-    grid-template-rows: auto auto;
-    align-items: center;
-  }
-  .main-header .container > .branding {
-    grid-column: 1;
-    grid-row: 1;
-    justify-self: start;
-  }
-  .main-header .container > .right-controls {
-    grid-column: 2;
-    grid-row: 1;
-    justify-self: end;
-  }
-  .main-header .container > nav {
-    grid-column: 1 / span 2;
-    grid-row: 2;
-    justify-self: stretch;
-  }
-}
-
-
-@media (max-width: 700px) {
-  .main-header .container {
-    grid-template-columns: auto 1fr;
     grid-template-areas: "brand controls" "nav nav";
     align-items: center;
   }
+  
   .main-header .container > .branding {
     grid-area: brand;
     justify-self: start;
   }
+  
   .main-header .container > .right-controls {
     grid-area: controls;
     justify-self: end;
   }
+  
   .main-header .container > nav {
     grid-area: nav;
     justify-self: stretch;
@@ -104,16 +74,18 @@ import Brand from "./Brand.astro";
 .dropdown {
   position: absolute;
   z-index: 55;
-  padding: 0.5rem;
+  padding: var(--space-sm);
   min-width: 220px;
   background-color: var(--c-card);
   border: 1px solid var(--c-border);
-  border-radius: 8px;
-  box-shadow: 0 10px 15px -3px rgba(var(--c-shadow-color), 0.1), 0 4px 6px -2px rgba(var(--c-shadow-color), 0.05);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
   opacity: 0;
   visibility: hidden;
   transform: translateY(10px);
-  transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease, visibility var(--transition-speed) ease;
+  transition: opacity var(--transition-speed) ease, 
+              transform var(--transition-speed) ease, 
+              visibility var(--transition-speed) ease;
   list-style: none;
   margin: 0;
 }
