@@ -1,0 +1,860 @@
+---
+export const prerender = false;
+import BaseLayout from "@layouts/BaseLayout.astro";
+
+// Check if user is authenticated
+const user = Astro.locals.user;
+const session = Astro.locals.session;
+
+if (!user) {
+  return Astro.redirect("/connexion");
+}
+---
+
+<BaseLayout title="Mon profil" description="Gérez votre profil utilisateur">
+  <div class="profile-container">
+    <div class="profile-header">
+      <h1>Mon profil</h1>
+      <p>Gérez vos informations personnelles et vos organisations</p>
+    </div>
+
+    <div class="profile-content">
+      <!-- User Information Section -->
+      <div class="profile-section">
+        <div class="section-header">
+          <h2>Informations personnelles</h2>
+          <button id="edit-profile-btn" class="btn-secondary">Modifier</button>
+        </div>
+        
+        <div class="user-info-card">
+          <div class="user-avatar">
+            <img 
+              src={user.image || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.name) + "&background=3b82f6&color=fff"} 
+              alt="Avatar"
+              id="user-avatar"
+            />
+            <button id="change-avatar-btn" class="avatar-btn">Changer</button>
+            <input type="file" id="avatar-input" accept="image/*" style="display: none;" />
+          </div>
+          
+          <div class="user-details" id="user-details">
+            <div class="detail-row">
+              <label>Nom complet</label>
+              <span id="display-name">{user.name}</span>
+            </div>
+            <div class="detail-row">
+              <label>Nom d'utilisateur</label>
+              <span id="display-username">{user.username || "Non défini"}</span>
+            </div>
+            <div class="detail-row">
+              <label>Adresse email</label>
+              <span id="display-email">{user.email}</span>
+              <span class={`email-status ${user.emailVerified ? 'verified' : 'unverified'}`}>
+                {user.emailVerified ? '✅ Vérifié' : '⚠️ Non vérifié'}
+              </span>
+            </div>
+            <div class="detail-row">
+              <label>Rôle</label>
+              <span id="display-role">{user.role || "Utilisateur"}</span>
+            </div>
+            <div class="detail-row">
+              <label>Membre depuis</label>
+              <span>{new Date(user.createdAt).toLocaleDateString('fr-FR')}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Edit Form (hidden by default) -->
+        <form id="edit-profile-form" class="edit-form" style="display: none;">
+          <div class="form-group">
+            <label for="edit-name">Nom complet</label>
+            <input type="text" id="edit-name" name="name" value={user.name} required />
+          </div>
+          <div class="form-group">
+            <label for="edit-username">Nom d'utilisateur</label>
+            <input type="text" id="edit-username" name="username" value={user.username || ""} />
+          </div>
+          <div class="form-group">
+            <label for="edit-email">Adresse email</label>
+            <input type="email" id="edit-email" name="email" value={user.email} required />
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">Sauvegarder</button>
+            <button type="button" id="cancel-edit-btn" class="btn-secondary">Annuler</button>
+          </div>
+          <div class="auth-error" id="profile-error" style="display: none;"></div>
+          <div class="auth-success" id="profile-success" style="display: none;"></div>
+        </form>
+      </div>
+
+      <!-- Email Verification Section -->
+      {!user.emailVerified && (
+        <div class="profile-section">
+          <div class="section-header">
+            <h2>Vérification d'email</h2>
+          </div>
+          <div class="verification-card">
+            <p>Votre adresse email n'est pas encore vérifiée. Cliquez ci-dessous pour recevoir un code de vérification.</p>
+            <button id="send-verification-btn" class="btn-primary">Envoyer le code de vérification</button>
+            
+            <form id="verify-email-form" class="verify-form" style="display: none;">
+              <div class="form-group">
+                <label for="verification-code">Code de vérification</label>
+                <input type="text" id="verification-code" name="otp" placeholder="000000" maxlength="6" required />
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn-primary">Vérifier</button>
+                <button type="button" id="cancel-verify-btn" class="btn-secondary">Annuler</button>
+              </div>
+            </form>
+            
+            <div class="auth-error" id="verify-error" style="display: none;"></div>
+            <div class="auth-success" id="verify-success" style="display: none;"></div>
+          </div>
+        </div>
+      )}
+
+      <!-- Organizations Section -->
+      <div class="profile-section">
+        <div class="section-header">
+          <h2>Mes organisations</h2>
+          <button id="create-org-btn" class="btn-primary">Créer une organisation</button>
+        </div>
+        
+        <div id="organizations-list" class="organizations-grid">
+          <!-- Organizations will be loaded here -->
+        </div>
+      </div>
+
+      <!-- Password Change Section -->
+      <div class="profile-section">
+        <div class="section-header">
+          <h2>Changer le mot de passe</h2>
+        </div>
+        
+        <form id="password-form" class="password-form">
+          <div class="form-group">
+            <label for="current-password">Mot de passe actuel</label>
+            <input type="password" id="current-password" name="currentPassword" required />
+          </div>
+          <div class="form-group">
+            <label for="new-password">Nouveau mot de passe</label>
+            <input type="password" id="new-password" name="newPassword" minlength="8" required />
+            <div class="password-strength" id="password-strength"></div>
+          </div>
+          <div class="form-group">
+            <label for="confirm-new-password">Confirmer le nouveau mot de passe</label>
+            <input type="password" id="confirm-new-password" name="confirmPassword" required />
+          </div>
+          <button type="submit" class="btn-primary">Changer le mot de passe</button>
+          <div class="auth-error" id="password-error" style="display: none;"></div>
+          <div class="auth-success" id="password-success" style="display: none;"></div>
+        </form>
+      </div>
+
+      <!-- Danger Zone -->
+      <div class="profile-section danger-zone">
+        <div class="section-header">
+          <h2>Zone de danger</h2>
+        </div>
+        
+        <div class="danger-actions">
+          <button id="logout-btn" class="btn-danger">Se déconnecter</button>
+          <button id="delete-account-btn" class="btn-danger">Supprimer le compte</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Organization Modal -->
+  <div id="create-org-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Créer une organisation</h3>
+        <button id="close-modal-btn" class="close-btn">&times;</button>
+      </div>
+      <form id="create-org-form">
+        <div class="form-group">
+          <label for="org-name">Nom de l'organisation</label>
+          <input type="text" id="org-name" name="name" required />
+        </div>
+        <div class="form-group">
+          <label for="org-slug">Identifiant unique</label>
+          <input type="text" id="org-slug" name="slug" pattern="[a-z0-9-]+" required />
+          <small>Lettres minuscules, chiffres et tirets uniquement</small>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">Créer</button>
+          <button type="button" id="cancel-create-org" class="btn-secondary">Annuler</button>
+        </div>
+        <div class="auth-error" id="org-error" style="display: none;"></div>
+      </form>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .profile-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .profile-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .profile-header h1 {
+    margin: 0 0 0.5rem;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1a202c;
+  }
+
+  .profile-header p {
+    margin: 0;
+    font-size: 1.125rem;
+    color: #6b7280;
+  }
+
+  .profile-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .profile-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    padding: 2rem;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 1rem;
+  }
+
+  .section-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1a202c;
+  }
+
+  .user-info-card {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+
+  .user-avatar {
+    text-align: center;
+  }
+
+  .user-avatar img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #e5e7eb;
+  }
+
+  .avatar-btn {
+    display: block;
+    margin: 1rem auto 0;
+    padding: 0.5rem 1rem;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+  }
+
+  .avatar-btn:hover {
+    background: #e5e7eb;
+  }
+
+  .user-details {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .detail-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .detail-row label {
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+
+  .detail-row span {
+    font-size: 1rem;
+    color: #1a202c;
+  }
+
+  .email-status {
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .email-status.verified {
+    color: #059669;
+  }
+
+  .email-status.unverified {
+    color: #d97706;
+  }
+
+  .edit-form, .verify-form, .password-form {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .form-group label {
+    font-weight: 500;
+    color: #374151;
+    font-size: 0.875rem;
+  }
+
+  .form-group input {
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .form-group input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .form-group small {
+    font-size: 0.75rem;
+    color: #6b7280;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .btn-primary, .btn-secondary, .btn-danger {
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    font-size: 0.875rem;
+  }
+
+  .btn-primary {
+    background: #3b82f6;
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: #2563eb;
+  }
+
+  .btn-secondary {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+  }
+
+  .btn-secondary:hover {
+    background: #e5e7eb;
+  }
+
+  .btn-danger {
+    background: #dc2626;
+    color: white;
+  }
+
+  .btn-danger:hover {
+    background: #b91c1c;
+  }
+
+  .password-strength {
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+  }
+
+  .password-strength.weak { color: #dc2626; }
+  .password-strength.medium { color: #f59e0b; }
+  .password-strength.strong { color: #10b981; }
+
+  .verification-card {
+    background: #fef3cd;
+    border: 1px solid #fde68a;
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+
+  .organizations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .org-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: border-color 0.2s ease;
+  }
+
+  .org-card:hover {
+    border-color: #3b82f6;
+  }
+
+  .org-card h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+
+  .org-card p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
+
+  .danger-zone {
+    border-color: #fecaca;
+  }
+
+  .danger-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .auth-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+  }
+
+  .auth-success {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+  }
+
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    padding: 1.5rem 1.5rem 0;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 0;
+  }
+
+  .close-btn:hover {
+    color: #374151;
+  }
+
+  @media (max-width: 768px) {
+    .profile-container {
+      padding: 1rem;
+    }
+
+    .user-info-card {
+      grid-template-columns: 1fr;
+      text-align: center;
+    }
+
+    .section-header {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: stretch;
+    }
+
+    .form-actions {
+      flex-direction: column;
+    }
+
+    .danger-actions {
+      flex-direction: column;
+    }
+  }
+</style>
+
+<script>
+  import { authClient } from "@lib/auth-client";
+
+  // Error/Success display functions
+  function showError(elementId, message) {
+    const element = document.getElementById(elementId);
+    element.textContent = message;
+    element.style.display = 'block';
+  }
+
+  function showSuccess(elementId, message) {
+    const element = document.getElementById(elementId);
+    element.textContent = message;
+    element.style.display = 'block';
+  }
+
+  function hideMessages(prefix) {
+    document.getElementById(prefix + '-error').style.display = 'none';
+    document.getElementById(prefix + '-success').style.display = 'none';
+  }
+
+  // Profile editing
+  const editBtn = document.getElementById('edit-profile-btn');
+  const editForm = document.getElementById('edit-profile-form');
+  const userDetails = document.getElementById('user-details');
+  const cancelEditBtn = document.getElementById('cancel-edit-btn');
+
+  editBtn.addEventListener('click', () => {
+    userDetails.style.display = 'none';
+    editForm.style.display = 'block';
+    editBtn.style.display = 'none';
+  });
+
+  cancelEditBtn.addEventListener('click', () => {
+    editForm.style.display = 'none';
+    userDetails.style.display = 'block';
+    editBtn.style.display = 'block';
+    hideMessages('profile');
+  });
+
+  editForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideMessages('profile');
+    
+    const formData = new FormData(e.target);
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sauvegarde...';
+    
+    try {
+      const { data, error } = await authClient.updateUser({
+        name: formData.get('name'),
+        username: formData.get('username'),
+        email: formData.get('email')
+      });
+      
+      if (error) {
+        showError('profile-error', error.message || 'Erreur lors de la mise à jour');
+      } else {
+        showSuccess('profile-success', 'Profil mis à jour avec succès');
+        // Update display
+        document.getElementById('display-name').textContent = formData.get('name');
+        document.getElementById('display-username').textContent = formData.get('username') || 'Non défini';
+        document.getElementById('display-email').textContent = formData.get('email');
+      }
+    } catch (error) {
+      showError('profile-error', 'Erreur lors de la mise à jour');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Sauvegarder';
+    }
+  });
+
+  // Email verification
+  const sendVerificationBtn = document.getElementById('send-verification-btn');
+  const verifyForm = document.getElementById('verify-email-form');
+  const cancelVerifyBtn = document.getElementById('cancel-verify-btn');
+
+  sendVerificationBtn?.addEventListener('click', async () => {
+    hideMessages('verify');
+    sendVerificationBtn.disabled = true;
+    sendVerificationBtn.textContent = 'Envoi...';
+    
+    try {
+      const { data, error } = await authClient.sendVerificationOtp({
+        email: document.getElementById('display-email').textContent,
+        type: "email-verification"
+      });
+      
+      if (error) {
+        showError('verify-error', error.message || 'Erreur lors de l\'envoi');
+      } else {
+        sendVerificationBtn.style.display = 'none';
+        verifyForm.style.display = 'block';
+      }
+    } catch (error) {
+      showError('verify-error', 'Erreur lors de l\'envoi');
+    } finally {
+      sendVerificationBtn.disabled = false;
+      sendVerificationBtn.textContent = 'Envoyer le code de vérification';
+    }
+  });
+
+  cancelVerifyBtn?.addEventListener('click', () => {
+    verifyForm.style.display = 'none';
+    sendVerificationBtn.style.display = 'block';
+    hideMessages('verify');
+  });
+
+  verifyForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideMessages('verify');
+    
+    const formData = new FormData(e.target);
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Vérification...';
+    
+    try {
+      const { data, error } = await authClient.verifyEmail({
+        otp: formData.get('otp')
+      });
+      
+      if (error) {
+        showError('verify-error', error.message || 'Code invalide');
+      } else {
+        showSuccess('verify-success', 'Email vérifié avec succès !');
+        setTimeout(() => location.reload(), 2000);
+      }
+    } catch (error) {
+      showError('verify-error', 'Code invalide');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Vérifier';
+    }
+  });
+
+  // Password change
+  const passwordInput = document.getElementById('new-password');
+  const strengthDiv = document.getElementById('password-strength');
+
+  passwordInput.addEventListener('input', () => {
+    const password = passwordInput.value;
+    const strength = calculatePasswordStrength(password);
+    strengthDiv.className = 'password-strength ' + strength.class;
+    strengthDiv.textContent = strength.text;
+  });
+
+  function calculatePasswordStrength(password) {
+    if (password.length < 6) return { class: 'weak', text: 'Trop court' };
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (/[a-z]/.test(password)) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/\d/.test(password)) score++;
+    if (/[^a-zA-Z\d]/.test(password)) score++;
+    
+    if (score < 3) return { class: 'weak', text: 'Faible' };
+    if (score < 4) return { class: 'medium', text: 'Moyen' };
+    return { class: 'strong', text: 'Fort' };
+  }
+
+  document.getElementById('password-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideMessages('password');
+    
+    const formData = new FormData(e.target);
+    const newPassword = formData.get('newPassword');
+    const confirmPassword = formData.get('confirmPassword');
+    
+    if (newPassword !== confirmPassword) {
+      showError('password-error', 'Les mots de passe ne correspondent pas');
+      return;
+    }
+    
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Changement...';
+    
+    try {
+      const { data, error } = await authClient.changePassword({
+        currentPassword: formData.get('currentPassword'),
+        newPassword: newPassword
+      });
+      
+      if (error) {
+        showError('password-error', error.message || 'Erreur lors du changement');
+      } else {
+        showSuccess('password-success', 'Mot de passe changé avec succès');
+        e.target.reset();
+      }
+    } catch (error) {
+      showError('password-error', 'Erreur lors du changement');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Changer le mot de passe';
+    }
+  });
+
+  // Organizations
+  async function loadOrganizations() {
+    try {
+      const { data } = await authClient.organization.list();
+      const orgsList = document.getElementById('organizations-list');
+      
+      if (data && data.length > 0) {
+        orgsList.innerHTML = data.map(org => `
+          <div class="org-card">
+            <h3>${org.name}</h3>
+            <p>Rôle: ${org.role}</p>
+            <p>Slug: ${org.slug}</p>
+            <button onclick="setActiveOrg('${org.id}')" class="btn-secondary">Activer</button>
+          </div>
+        `).join('');
+      } else {
+        orgsList.innerHTML = '<p>Aucune organisation trouvée</p>';
+      }
+    } catch (error) {
+      console.error('Erreur chargement organisations:', error);
+    }
+  }
+
+  // Set active organization
+  window.setActiveOrg = async (orgId) => {
+    try {
+      await authClient.organization.setActive({ organizationId: orgId });
+      location.reload();
+    } catch (error) {
+      console.error('Erreur activation organisation:', error);
+    }
+  };
+
+  // Create organization modal
+  const createOrgBtn = document.getElementById('create-org-btn');
+  const modal = document.getElementById('create-org-modal');
+  const closeModalBtn = document.getElementById('close-modal-btn');
+  const cancelCreateOrgBtn = document.getElementById('cancel-create-org');
+
+  createOrgBtn.addEventListener('click', () => {
+    modal.style.display = 'flex';
+  });
+
+  [closeModalBtn, cancelCreateOrgBtn].forEach(btn => {
+    btn.addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+  });
+
+  // Auto-generate slug
+  const orgNameInput = document.getElementById('org-name');
+  const orgSlugInput = document.getElementById('org-slug');
+
+  orgNameInput.addEventListener('input', () => {
+    const slug = orgNameInput.value
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .slice(0, 50);
+    orgSlugInput.value = slug;
+  });
+
+  // Create organization
+  document.getElementById('create-org-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Création...';
+    
+    try {
+      const { data, error } = await authClient.organization.create({
+        name: formData.get('name'),
+        slug: formData.get('slug')
+      });
+      
+      if (error) {
+        showError('org-error', error.message || 'Erreur lors de la création');
+      } else {
+        modal.style.display = 'none';
+        loadOrganizations();
+      }
+    } catch (error) {
+      showError('org-error', 'Erreur lors de la création');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Créer';
+    }
+  });
+
+  // Logout
+  document.getElementById('logout-btn').addEventListener('click', async () => {
+    if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+      await authClient.signOut();
+      window.location.href = '/connexion';
+    }
+  });
+
+  // Delete account
+  document.getElementById('delete-account-btn').addEventListener('click', () => {
+    if (confirm('Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.')) {
+      if (confirm('Confirmez-vous la suppression définitive de votre compte ?')) {
+        // Implement account deletion
+        alert('Fonctionnalité de suppression de compte à implémenter');
+      }
+    }
+  });
+
+  // Load organizations on page load
+  loadOrganizations();
+</script>

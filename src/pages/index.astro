@@ -1,14 +1,276 @@
 ---
 import BaseLayout from "@layouts/BaseLayout.astro"
+
+// Get user from middleware
+const user = Astro.locals.user;
+const session = Astro.locals.session;
 ---
 
-<BaseLayout title="Home Page" description="Welcome to the home page">
-  <h1>Welcome to the Home Page</h1>
-  <p>This is the main content of the home page.</p>
-  <ul>
-    <li><a href="/inscription">Inscription</a></li>
-    <li><a href="/connexion">Connexion</a></li>
-    <li><a href="/profile">Profile</a></li>
-    <li><a href="/admin">Admin</a></li>
-  </ul>
+<BaseLayout title="Accueil" description="Bienvenue sur notre plateforme">
+  <div class="home-container">
+    <div class="hero-section">
+      <h1>Bienvenue sur la plateforme</h1>
+      {user ? (
+        <div class="welcome-user">
+          <p>Bonjour, <strong>{user.name}</strong> !</p>
+          <p>Vous êtes connecté avec le rôle : <span class="role-badge">{user.role || "utilisateur"}</span></p>
+        </div>
+      ) : (
+        <p>Connectez-vous pour accéder à toutes les fonctionnalités</p>
+      )}
+    </div>
+
+    <div class="actions-section">
+      {user ? (
+        <div class="user-actions">
+          <h2>Vos actions</h2>
+          <div class="actions-grid">
+            <a href="/profil" class="action-card">
+              <div class="action-icon">👤</div>
+              <h3>Mon profil</h3>
+              <p>Gérez vos informations personnelles</p>
+            </a>
+            
+            {user.role === "admin" && (
+              <a href="/admin" class="action-card admin-card">
+                <div class="action-icon">⚙️</div>
+                <h3>Administration</h3>
+                <p>Tableau de bord administrateur</p>
+              </a>
+            )}
+            
+            <a href="/organisations" class="action-card">
+              <div class="action-icon">🏢</div>
+              <h3>Mes organisations</h3>
+              <p>Gérez vos organisations</p>
+            </a>
+          </div>
+        </div>
+      ) : (
+        <div class="guest-actions">
+          <h2>Commencer</h2>
+          <div class="actions-grid">
+            <a href="/inscription" class="action-card primary-card">
+              <div class="action-icon">✨</div>
+              <h3>Créer un compte</h3>
+              <p>Rejoignez notre plateforme en quelques minutes</p>
+            </a>
+            
+            <a href="/connexion" class="action-card">
+              <div class="action-icon">🔐</div>
+              <h3>Se connecter</h3>
+              <p>Accédez à votre compte existant</p>
+            </a>
+          </div>
+        </div>
+      )}
+    </div>
+
+    <div class="features-section">
+      <h2>Fonctionnalités</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🔐</div>
+          <h3>Authentification sécurisée</h3>
+          <p>Connexion par email, nom d'utilisateur ou code OTP</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">🏢</div>
+          <h3>Gestion d'organisations</h3>
+          <p>Créez et gérez vos équipes et organisations</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">👥</div>
+          <h3>Gestion des rôles</h3>
+          <p>Système de rôles et permissions avancé</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">📧</div>
+          <h3>Vérification par email</h3>
+          <p>Codes OTP sécurisés envoyés par email</p>
+        </div>
+      </div>
+    </div>
+  </div>
 </BaseLayout>
+
+<style>
+  .home-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .hero-section {
+    text-align: center;
+    padding: 4rem 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 16px;
+    margin-bottom: 3rem;
+  }
+
+  .hero-section h1 {
+    margin: 0 0 1rem;
+    font-size: 3rem;
+    font-weight: 700;
+  }
+
+  .hero-section p {
+    font-size: 1.25rem;
+    margin: 0;
+    opacity: 0.9;
+  }
+
+  .welcome-user {
+    margin-top: 2rem;
+  }
+
+  .welcome-user p {
+    margin: 0.5rem 0;
+  }
+
+  .role-badge {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-weight: 600;
+    text-transform: capitalize;
+  }
+
+  .actions-section,
+  .features-section {
+    margin-bottom: 3rem;
+  }
+
+  .actions-section h2,
+  .features-section h2 {
+    text-align: center;
+    margin: 0 0 2rem;
+    font-size: 2rem;
+    font-weight: 600;
+    color: #1a202c;
+  }
+
+  .actions-grid,
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+  }
+
+  .action-card {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+  }
+
+  .action-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border-color: #3b82f6;
+  }
+
+  .action-card.primary-card {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+  }
+
+  .action-card.primary-card:hover {
+    border-color: #1d4ed8;
+  }
+
+  .action-card.admin-card {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+  }
+
+  .action-card.admin-card:hover {
+    border-color: #d97706;
+  }
+
+  .action-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  .action-card h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  .action-card p {
+    margin: 0;
+    opacity: 0.8;
+    font-size: 1rem;
+  }
+
+  .feature-card {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    text-align: center;
+    border: 1px solid #e5e7eb;
+  }
+
+  .feature-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  .feature-card h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1a202c;
+  }
+
+  .feature-card p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
+
+  @media (max-width: 768px) {
+    .home-container {
+      padding: 1rem;
+    }
+
+    .hero-section {
+      padding: 2rem 1rem;
+    }
+
+    .hero-section h1 {
+      font-size: 2rem;
+    }
+
+    .hero-section p {
+      font-size: 1rem;
+    }
+
+    .actions-grid,
+    .features-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .action-card {
+      padding: 1.5rem;
+    }
+
+    .feature-card {
+      padding: 1.5rem;
+    }
+  }
+</style>
