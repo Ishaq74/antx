@@ -38,4 +38,4 @@ jobs:
         run: npm install -g vercel
 
       - name: Deploy to Vercel Preview
-        run: vercel --previews --token ${{ secrets.VERCEL_TOKEN }}
+        run: vercel --token ${{ secrets.VERCEL_TOKEN }} --confirm
