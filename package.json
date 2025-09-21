@@ -20,8 +20,10 @@
     "nodemailer": "^7.0.6"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.4",
     "@types/nodemailer": "^7.0.1",
     "prisma": "^6.16.2",
-    "tsx": "^4.20.5"
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
   }
 }

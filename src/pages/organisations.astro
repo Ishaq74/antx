@@ -705,6 +705,7 @@ if (!user) {
 
 <script>
   import { authClient } from "@lib/auth-client";
+  import { mapErrorMessage, getSuccessMessage, getLoadingMessage } from "@lib/error-messages";
 
   let currentOrganization = null;
 
@@ -908,7 +909,7 @@ if (!user) {
     const formData = new FormData(e.target);
     const submitBtn = e.target.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Création...';
+    submitBtn.textContent = getLoadingMessage('saving');
     
     try {
       const { data, error } = await authClient.organization.create({
@@ -918,7 +919,7 @@ if (!user) {
       });
       
       if (error) {
-        showError('create-org-error', error.message || 'Erreur lors de la création');
+        showError('create-org-error', mapErrorMessage(error));
       } else {
         closeModal('create-org-modal');
         loadOrganizations();
@@ -945,7 +946,7 @@ if (!user) {
     const formData = new FormData(e.target);
     const submitBtn = e.target.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Envoi...';
+    submitBtn.textContent = getLoadingMessage('sending');
     
     try {
       const { data, error } = await authClient.organization.invite({
@@ -956,9 +957,9 @@ if (!user) {
       });
       
       if (error) {
-        showError('invite-error', error.message || 'Erreur lors de l\'invitation');
+        showError('invite-error', mapErrorMessage(error));
       } else {
-        showSuccess('invite-success', 'Invitation envoyée avec succès');
+        showSuccess('invite-success', getSuccessMessage('invitation-sent'));
         e.target.reset();
         loadPendingInvites(currentOrganization.id);
       }
@@ -978,7 +979,7 @@ if (!user) {
     const formData = new FormData(e.target);
     const submitBtn = e.target.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Sauvegarde...';
+    submitBtn.textContent = getLoadingMessage('saving');
     
     try {
       const { data, error } = await authClient.organization.update({
@@ -988,9 +989,9 @@ if (!user) {
       });
       
       if (error) {
-        showError('settings-error', error.message || 'Erreur lors de la mise à jour');
+        showError('settings-error', mapErrorMessage(error));
       } else {
-        showSuccess('settings-success', 'Paramètres mis à jour avec succès');
+        showSuccess('settings-success', getSuccessMessage('profile-updated'));
         loadOrganizations();
       }
     } catch (error) {

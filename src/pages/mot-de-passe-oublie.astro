@@ -37,6 +37,7 @@ if (user) {
           <Button type="submit" fullWidth>Envoyer le code</Button>
           
           <Alert variant="error" id="request-error" style="display: none;" />
+          <Alert variant="success" id="request-success" style="display: none;" />
         </form>
       </div>
 
@@ -81,6 +82,7 @@ if (user) {
           <Button type="button" variant="secondary" fullWidth id="back-btn">Retour</Button>
           
           <Alert variant="error" id="reset-error" style="display: none;" />
+          <Alert variant="success" id="reset-success" style="display: none;" />
         </form>
       </div>
 
@@ -132,6 +134,7 @@ if (user) {
 
 <script>
   import { authClient } from "@lib/auth-client";
+  import { mapErrorMessage, getSuccessMessage, getLoadingMessage } from "@lib/error-messages";
 
   let currentEmail = '';
 
@@ -168,16 +171,38 @@ if (user) {
     }
   }
 
-  // Error display functions
+  // Error and success display functions
   function showError(elementId, message) {
     const errorElement = document.getElementById(elementId);
     errorElement.textContent = message;
     errorElement.style.display = 'block';
+    
+    // Hide corresponding success message
+    const successElementId = elementId.replace('-error', '-success');
+    const successElement = document.getElementById(successElementId);
+    if (successElement) {
+      successElement.style.display = 'none';
+    }
   }
 
   function hideError(elementId) {
     const errorElement = document.getElementById(elementId);
     errorElement.style.display = 'none';
+  }
+
+  function showSuccess(elementId, message) {
+    const successElement = document.getElementById(elementId);
+    if (successElement) {
+      successElement.textContent = message;
+      successElement.style.display = 'block';
+      
+      // Hide corresponding error message
+      const errorElementId = elementId.replace('-success', '-error');
+      const errorElement = document.getElementById(errorElementId);
+      if (errorElement) {
+        errorElement.style.display = 'none';
+      }
+    }
   }
 
   // Show specific step
@@ -199,7 +224,7 @@ if (user) {
     
     const submitBtn = e.target.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Envoi...';
+    submitBtn.textContent = getLoadingMessage('otp-sending');
     
     try {
       const { data, error } = await authClient.sendVerificationOtp({
@@ -208,12 +233,13 @@ if (user) {
       });
       
       if (error) {
-        showError('request-error', error.message || 'Erreur lors de l\'envoi du code');
+        showError('request-error', mapErrorMessage(error));
       } else {
+        showSuccess('request-success', getSuccessMessage('otp-sent'));
         showStep('reset-step');
       }
     } catch (error) {
-      showError('request-error', 'Erreur lors de l\'envoi du code');
+      showError('request-error', mapErrorMessage(error));
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Envoyer le code';
@@ -238,7 +264,7 @@ if (user) {
     
     const submitBtn = e.target.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Réinitialisation...';
+    submitBtn.textContent = getLoadingMessage('password-resetting');
     
     try {
       const { data, error } = await authClient.resetPassword({
@@ -247,12 +273,13 @@ if (user) {
       });
       
       if (error) {
-        showError('reset-error', error.message || 'Code invalide ou expiré');
+        showError('reset-error', mapErrorMessage(error));
       } else {
+        showSuccess('reset-success', getSuccessMessage('password-reset'));
         showStep('success-step');
       }
     } catch (error) {
-      showError('reset-error', 'Code invalide ou expiré');
+      showError('reset-error', mapErrorMessage(error));
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Réinitialiser le mot de passe';
