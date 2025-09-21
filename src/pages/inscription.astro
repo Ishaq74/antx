@@ -1,0 +1,589 @@
+---
+export const prerender = false;
+import BaseLayout from "@layouts/BaseLayout.astro";
+
+// Check if user is already authenticated
+const user = Astro.locals.user;
+if (user) {
+  return Astro.redirect("/");
+}
+---
+
+<BaseLayout title="Inscription" description="Créez votre compte">
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <h1>Créer un compte</h1>
+        <p>Rejoignez notre plateforme</p>
+      </div>
+
+      <form id="signup-form" class="auth-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="name">Nom complet</label>
+            <input 
+              type="text" 
+              id="name" 
+              name="name" 
+              required 
+              placeholder="Votre nom complet"
+            />
+          </div>
+          
+          <div class="form-group">
+            <label for="username">Nom d'utilisateur</label>
+            <input 
+              type="text" 
+              id="username" 
+              name="username" 
+              required 
+              placeholder="nom_utilisateur"
+              pattern="[a-zA-Z0-9_]+"
+              minlength="3"
+              maxlength="20"
+            />
+            <small>3-20 caractères, lettres, chiffres et underscore uniquement</small>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Adresse email</label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            required 
+            placeholder="votre@email.com"
+          />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="password">Mot de passe</label>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              required 
+              placeholder="Mot de passe sécurisé"
+              minlength="8"
+            />
+            <div class="password-strength" id="password-strength"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="confirmPassword">Confirmer le mot de passe</label>
+            <input 
+              type="password" 
+              id="confirmPassword" 
+              name="confirmPassword" 
+              required 
+              placeholder="Confirmer le mot de passe"
+            />
+          </div>
+        </div>
+
+        <!-- Organization section (optional) -->
+        <div class="form-section">
+          <h3>Organisation (optionnel)</h3>
+          <div class="form-group">
+            <label>
+              <input type="radio" name="orgOption" value="none" checked />
+              Aucune organisation pour le moment
+            </label>
+          </div>
+          <div class="form-group">
+            <label>
+              <input type="radio" name="orgOption" value="create" />
+              Créer une nouvelle organisation
+            </label>
+          </div>
+          <div class="form-group">
+            <label>
+              <input type="radio" name="orgOption" value="join" />
+              Rejoindre une organisation existante
+            </label>
+          </div>
+          
+          <!-- Create organization fields -->
+          <div id="create-org-fields" class="org-fields" style="display: none;">
+            <div class="form-group">
+              <label for="orgName">Nom de l'organisation</label>
+              <input 
+                type="text" 
+                id="orgName" 
+                name="orgName" 
+                placeholder="Mon entreprise"
+              />
+            </div>
+            <div class="form-group">
+              <label for="orgSlug">Identifiant unique</label>
+              <input 
+                type="text" 
+                id="orgSlug" 
+                name="orgSlug" 
+                placeholder="mon-entreprise"
+                pattern="[a-z0-9-]+"
+              />
+              <small>Lettres minuscules, chiffres et tirets uniquement</small>
+            </div>
+          </div>
+          
+          <!-- Join organization fields -->
+          <div id="join-org-fields" class="org-fields" style="display: none;">
+            <div class="form-group">
+              <label for="inviteCode">Code d'invitation</label>
+              <input 
+                type="text" 
+                id="inviteCode" 
+                name="inviteCode" 
+                placeholder="Code reçu par email"
+              />
+              <small>Vous avez reçu ce code par email de la part de votre organisation</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-options">
+          <label class="checkbox-label">
+            <input type="checkbox" name="emailVerification" checked />
+            <span>Vérifier mon email après l'inscription</span>
+          </label>
+        </div>
+
+        <div class="form-options">
+          <label class="checkbox-label">
+            <input type="checkbox" name="terms" required />
+            <span>J'accepte les <a href="/conditions" target="_blank">conditions d'utilisation</a></span>
+          </label>
+        </div>
+
+        <button type="submit" class="auth-btn">Créer mon compte</button>
+
+        <div class="auth-error" id="signup-error" style="display: none;"></div>
+        <div class="auth-success" id="signup-success" style="display: none;"></div>
+      </form>
+
+      <div class="auth-footer">
+        <p>Déjà un compte ? <a href="/connexion">Se connecter</a></p>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .auth-container {
+    min-height: calc(100vh - var(--header-height));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .auth-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    max-width: 600px;
+    overflow: hidden;
+  }
+
+  .auth-header {
+    text-align: center;
+    padding: 2rem 2rem 1rem;
+  }
+
+  .auth-header h1 {
+    margin: 0 0 0.5rem;
+    color: #1a202c;
+    font-size: 1.875rem;
+    font-weight: 700;
+  }
+
+  .auth-header p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 1rem;
+  }
+
+  .auth-form {
+    padding: 0 2rem 2rem;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #374151;
+    font-size: 0.875rem;
+  }
+
+  .form-group input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .form-group input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .form-group small {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+  }
+
+  .form-section {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-section h3 {
+    margin: 0 0 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #374151;
+  }
+
+  .form-section label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    font-size: 0.875rem;
+    color: #374151;
+    cursor: pointer;
+  }
+
+  .form-section input[type="radio"] {
+    margin-right: 0.5rem;
+    width: auto;
+  }
+
+  .org-fields {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  .password-strength {
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .password-strength.weak {
+    color: #dc2626;
+  }
+
+  .password-strength.medium {
+    color: #f59e0b;
+  }
+
+  .password-strength.strong {
+    color: #10b981;
+  }
+
+  .form-options {
+    margin-bottom: 1.5rem;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem;
+    color: #374151;
+    cursor: pointer;
+    margin-bottom: 0.75rem;
+  }
+
+  .checkbox-label input {
+    margin-right: 0.5rem;
+    width: auto;
+  }
+
+  .checkbox-label a {
+    color: #3b82f6;
+    text-decoration: none;
+  }
+
+  .checkbox-label a:hover {
+    text-decoration: underline;
+  }
+
+  .auth-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .auth-btn:hover {
+    background: #2563eb;
+  }
+
+  .auth-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .auth-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    margin-top: 1rem;
+  }
+
+  .auth-success {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    margin-top: 1rem;
+  }
+
+  .auth-footer {
+    text-align: center;
+    padding: 1.5rem 2rem 2rem;
+    border-top: 1px solid #e5e7eb;
+    background: #f9fafb;
+  }
+
+  .auth-footer p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+
+  .auth-footer a {
+    color: #3b82f6;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .auth-footer a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 640px) {
+    .auth-container {
+      padding: 1rem;
+    }
+    
+    .auth-card {
+      max-width: 100%;
+    }
+    
+    .form-row {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+  }
+</style>
+
+<script>
+  import { authClient } from "@lib/auth-client";
+
+  // Organization option handling
+  const orgOptions = document.querySelectorAll('input[name="orgOption"]');
+  const createOrgFields = document.getElementById('create-org-fields');
+  const joinOrgFields = document.getElementById('join-org-fields');
+
+  orgOptions.forEach(option => {
+    option.addEventListener('change', () => {
+      createOrgFields.style.display = 'none';
+      joinOrgFields.style.display = 'none';
+      
+      if (option.value === 'create') {
+        createOrgFields.style.display = 'block';
+      } else if (option.value === 'join') {
+        joinOrgFields.style.display = 'block';
+      }
+    });
+  });
+
+  // Auto-generate slug from organization name
+  const orgNameInput = document.getElementById('orgName');
+  const orgSlugInput = document.getElementById('orgSlug');
+
+  orgNameInput?.addEventListener('input', () => {
+    const slug = orgNameInput.value
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .slice(0, 50);
+    orgSlugInput.value = slug;
+  });
+
+  // Password strength checking
+  const passwordInput = document.getElementById('password');
+  const strengthDiv = document.getElementById('password-strength');
+
+  passwordInput.addEventListener('input', () => {
+    const password = passwordInput.value;
+    const strength = calculatePasswordStrength(password);
+    
+    strengthDiv.className = 'password-strength ' + strength.class;
+    strengthDiv.textContent = strength.text;
+  });
+
+  function calculatePasswordStrength(password) {
+    if (password.length < 6) {
+      return { class: 'weak', text: 'Mot de passe trop court' };
+    }
+    
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (/[a-z]/.test(password)) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/\d/.test(password)) score++;
+    if (/[^a-zA-Z\d]/.test(password)) score++;
+    
+    if (score < 3) {
+      return { class: 'weak', text: 'Mot de passe faible' };
+    } else if (score < 4) {
+      return { class: 'medium', text: 'Mot de passe moyen' };
+    } else {
+      return { class: 'strong', text: 'Mot de passe fort' };
+    }
+  }
+
+  // Error display functions
+  function showError(message) {
+    const errorElement = document.getElementById('signup-error');
+    errorElement.textContent = message;
+    errorElement.style.display = 'block';
+    document.getElementById('signup-success').style.display = 'none';
+  }
+
+  function showSuccess(message) {
+    const successElement = document.getElementById('signup-success');
+    successElement.textContent = message;
+    successElement.style.display = 'block';
+    document.getElementById('signup-error').style.display = 'none';
+  }
+
+  function hideMessages() {
+    document.getElementById('signup-error').style.display = 'none';
+    document.getElementById('signup-success').style.display = 'none';
+  }
+
+  // Form submission
+  document.getElementById('signup-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideMessages();
+    
+    const formData = new FormData(e.target);
+    const password = formData.get('password');
+    const confirmPassword = formData.get('confirmPassword');
+    
+    // Validate password match
+    if (password !== confirmPassword) {
+      showError('Les mots de passe ne correspondent pas');
+      return;
+    }
+    
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Création du compte...';
+    
+    try {
+      // Prepare signup data
+      const signupData = {
+        name: formData.get('name'),
+        username: formData.get('username'),
+        email: formData.get('email'),
+        password: formData.get('password'),
+        callbackURL: "/"
+      };
+
+      // Check if organization is being created
+      const orgOption = formData.get('orgOption');
+      if (orgOption === 'create') {
+        signupData.organizationName = formData.get('orgName');
+        signupData.organizationSlug = formData.get('orgSlug');
+      }
+
+      const { data, error } = await authClient.signUp.email(signupData);
+      
+      if (error) {
+        showError(error.message || 'Erreur lors de la création du compte');
+      } else {
+        // Handle organization creation or joining
+        if (orgOption === 'create' && data.user) {
+          try {
+            await authClient.organization.create({
+              name: formData.get('orgName'),
+              slug: formData.get('orgSlug')
+            });
+          } catch (orgError) {
+            console.warn('Erreur création organisation:', orgError);
+          }
+        } else if (orgOption === 'join' && formData.get('inviteCode')) {
+          try {
+            await authClient.organization.acceptInvitation({
+              invitationId: formData.get('inviteCode')
+            });
+          } catch (inviteError) {
+            console.warn('Erreur acceptation invitation:', inviteError);
+          }
+        }
+
+        // Check if email verification is requested
+        if (formData.get('emailVerification') === 'on') {
+          try {
+            await authClient.sendVerificationOtp({
+              email: formData.get('email'),
+              type: "email-verification"
+            });
+            showSuccess('Compte créé ! Un email de vérification a été envoyé.');
+          } catch (verifyError) {
+            showSuccess('Compte créé ! Vous pouvez maintenant vous connecter.');
+          }
+        } else {
+          showSuccess('Compte créé avec succès ! Redirection...');
+          setTimeout(() => {
+            window.location.href = "/";
+          }, 2000);
+        }
+      }
+    } catch (error) {
+      showError('Erreur lors de la création du compte');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Créer mon compte';
+    }
+  });
+</script>

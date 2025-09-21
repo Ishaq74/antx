@@ -1,0 +1,899 @@
+---
+export const prerender = false;
+import BaseLayout from "@layouts/BaseLayout.astro";
+
+// Check if user is authenticated and is admin
+const user = Astro.locals.user;
+const session = Astro.locals.session;
+
+if (!user) {
+  return Astro.redirect("/connexion");
+}
+
+if (user.role !== "admin") {
+  return Astro.redirect("/");
+}
+---
+
+<BaseLayout title="Administration" description="Tableau de bord administrateur">
+  <div class="admin-container">
+    <div class="admin-header">
+      <h1>Dashboard Administrateur</h1>
+      <p>Gestion de la plateforme et des utilisateurs</p>
+    </div>
+
+    <div class="admin-content">
+      <!-- Stats Overview -->
+      <div class="stats-section">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-info">
+              <h3 id="users-count">-</h3>
+              <p>Utilisateurs</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🏢</div>
+            <div class="stat-info">
+              <h3 id="orgs-count">-</h3>
+              <p>Organisations</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📝</div>
+            <div class="stat-info">
+              <h3 id="sessions-count">-</h3>
+              <p>Sessions actives</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🚫</div>
+            <div class="stat-info">
+              <h3 id="banned-count">-</h3>
+              <p>Utilisateurs bannis</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="admin-section">
+        <div class="section-header">
+          <h2>Actions rapides</h2>
+        </div>
+        <div class="actions-grid">
+          <button id="create-user-btn" class="action-btn">
+            <div class="action-icon">➕</div>
+            <span>Créer un utilisateur</span>
+          </button>
+          <button id="create-org-btn" class="action-btn">
+            <div class="action-icon">🏢</div>
+            <span>Créer une organisation</span>
+          </button>
+          <button id="send-invite-btn" class="action-btn">
+            <div class="action-icon">📧</div>
+            <span>Envoyer une invitation</span>
+          </button>
+          <button id="view-logs-btn" class="action-btn">
+            <div class="action-icon">📊</div>
+            <span>Voir les logs</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Users Management -->
+      <div class="admin-section">
+        <div class="section-header">
+          <h2>Gestion des utilisateurs</h2>
+          <div class="section-controls">
+            <input type="search" id="users-search" placeholder="Rechercher un utilisateur..." />
+            <button id="refresh-users-btn" class="btn-secondary">Actualiser</button>
+          </div>
+        </div>
+        <div class="table-container">
+          <table id="users-table" class="admin-table">
+            <thead>
+              <tr>
+                <th>Utilisateur</th>
+                <th>Email</th>
+                <th>Rôle</th>
+                <th>Statut</th>
+                <th>Inscription</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Users will be loaded here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Organizations Management -->
+      <div class="admin-section">
+        <div class="section-header">
+          <h2>Gestion des organisations</h2>
+          <div class="section-controls">
+            <input type="search" id="orgs-search" placeholder="Rechercher une organisation..." />
+            <button id="refresh-orgs-btn" class="btn-secondary">Actualiser</button>
+          </div>
+        </div>
+        <div class="table-container">
+          <table id="orgs-table" class="admin-table">
+            <thead>
+              <tr>
+                <th>Organisation</th>
+                <th>Slug</th>
+                <th>Membres</th>
+                <th>Création</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Organizations will be loaded here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- System Information -->
+      <div class="admin-section">
+        <div class="section-header">
+          <h2>Informations système</h2>
+        </div>
+        <div class="system-info">
+          <div class="info-card">
+            <h3>Configuration Better Auth</h3>
+            <ul>
+              <li>Email/Password: ✅ Activé</li>
+              <li>Username: ✅ Activé</li>
+              <li>Email OTP: ✅ Activé</li>
+              <li>Organizations: ✅ Activé</li>
+              <li>Admin: ✅ Activé</li>
+            </ul>
+          </div>
+          <div class="info-card">
+            <h3>Base de données</h3>
+            <p>Statut: <span class="status-ok">Connectée</span></p>
+            <p>Provider: PostgreSQL</p>
+          </div>
+          <div class="info-card">
+            <h3>SMTP</h3>
+            <p>Statut: <span id="smtp-status">Vérification...</span></p>
+            <button id="test-smtp-btn" class="btn-secondary">Tester SMTP</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modals -->
+  <!-- Create User Modal -->
+  <div id="create-user-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Créer un utilisateur</h3>
+        <button class="close-btn">&times;</button>
+      </div>
+      <form id="create-user-form">
+        <div class="form-group">
+          <label for="user-name">Nom complet</label>
+          <input type="text" id="user-name" name="name" required />
+        </div>
+        <div class="form-group">
+          <label for="user-email">Email</label>
+          <input type="email" id="user-email" name="email" required />
+        </div>
+        <div class="form-group">
+          <label for="user-username">Nom d'utilisateur</label>
+          <input type="text" id="user-username" name="username" />
+        </div>
+        <div class="form-group">
+          <label for="user-password">Mot de passe</label>
+          <input type="password" id="user-password" name="password" required />
+        </div>
+        <div class="form-group">
+          <label for="user-role">Rôle</label>
+          <select id="user-role" name="role">
+            <option value="user">Utilisateur</option>
+            <option value="admin">Administrateur</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">Créer</button>
+          <button type="button" class="btn-secondary close-modal">Annuler</button>
+        </div>
+        <div class="auth-error" id="create-user-error" style="display: none;"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Ban User Modal -->
+  <div id="ban-user-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Bannir l'utilisateur</h3>
+        <button class="close-btn">&times;</button>
+      </div>
+      <form id="ban-user-form">
+        <input type="hidden" id="ban-user-id" />
+        <div class="form-group">
+          <label for="ban-reason">Raison du bannissement</label>
+          <textarea id="ban-reason" name="reason" rows="3" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="ban-expires">Expiration (optionnel)</label>
+          <input type="datetime-local" id="ban-expires" name="expires" />
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-danger">Bannir</button>
+          <button type="button" class="btn-secondary close-modal">Annuler</button>
+        </div>
+        <div class="auth-error" id="ban-user-error" style="display: none;"></div>
+      </form>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .admin-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .admin-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .admin-header h1 {
+    margin: 0 0 0.5rem;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1a202c;
+  }
+
+  .admin-header p {
+    margin: 0;
+    font-size: 1.125rem;
+    color: #6b7280;
+  }
+
+  .admin-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .stats-section {
+    margin-bottom: 1rem;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .stat-icon {
+    font-size: 2rem;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3f4f6;
+    border-radius: 50%;
+  }
+
+  .stat-info h3 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a202c;
+  }
+
+  .stat-info p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
+
+  .admin-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 1rem;
+  }
+
+  .section-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1a202c;
+  }
+
+  .section-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .section-controls input[type="search"] {
+    padding: 0.5rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    width: 250px;
+  }
+
+  .actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.5rem;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .action-btn:hover {
+    background: #f3f4f6;
+    border-color: #3b82f6;
+  }
+
+  .action-icon {
+    font-size: 2rem;
+  }
+
+  .table-container {
+    overflow-x: auto;
+  }
+
+  .admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  .admin-table th,
+  .admin-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .admin-table th {
+    background: #f9fafb;
+    font-weight: 600;
+    color: #374151;
+  }
+
+  .admin-table tr:hover {
+    background: #f9fafb;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .user-details {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .user-name {
+    font-weight: 500;
+    color: #1a202c;
+  }
+
+  .user-username {
+    font-size: 0.75rem;
+    color: #6b7280;
+  }
+
+  .status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .status-active {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  .status-banned {
+    background: #fecaca;
+    color: #991b1b;
+  }
+
+  .status-unverified {
+    background: #fef3cd;
+    color: #92400e;
+  }
+
+  .table-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .btn-small {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-edit {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .btn-edit:hover {
+    background: #bfdbfe;
+  }
+
+  .btn-ban {
+    background: #fecaca;
+    color: #991b1b;
+  }
+
+  .btn-ban:hover {
+    background: #fca5a5;
+  }
+
+  .btn-unban {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  .btn-unban:hover {
+    background: #a7f3d0;
+  }
+
+  .system-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .info-card {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+
+  .info-card h3 {
+    margin: 0 0 1rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1a202c;
+  }
+
+  .info-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .info-card li {
+    padding: 0.25rem 0;
+    color: #374151;
+  }
+
+  .info-card p {
+    margin: 0.5rem 0;
+    color: #374151;
+  }
+
+  .status-ok {
+    color: #059669;
+    font-weight: 500;
+  }
+
+  .status-error {
+    color: #dc2626;
+    font-weight: 500;
+  }
+
+  .btn-primary, .btn-secondary, .btn-danger {
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    font-size: 0.875rem;
+  }
+
+  .btn-primary {
+    background: #3b82f6;
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: #2563eb;
+  }
+
+  .btn-secondary {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+  }
+
+  .btn-secondary:hover {
+    background: #e5e7eb;
+  }
+
+  .btn-danger {
+    background: #dc2626;
+    color: white;
+  }
+
+  .btn-danger:hover {
+    background: #b91c1c;
+  }
+
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 2rem;
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 1rem;
+  }
+
+  .modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 0;
+  }
+
+  .close-btn:hover {
+    color: #374151;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #374151;
+    font-size: 0.875rem;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .auth-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    margin-top: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .admin-container {
+      padding: 1rem;
+    }
+
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .section-header {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: stretch;
+    }
+
+    .section-controls {
+      flex-direction: column;
+    }
+
+    .section-controls input[type="search"] {
+      width: 100%;
+    }
+
+    .actions-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .table-container {
+      font-size: 0.75rem;
+    }
+
+    .form-actions {
+      flex-direction: column;
+    }
+  }
+</style>
+
+<script>
+  import { authClient } from "@lib/auth-client";
+
+  // Error display function
+  function showError(elementId, message) {
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.textContent = message;
+      element.style.display = 'block';
+    }
+  }
+
+  function hideError(elementId) {
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.style.display = 'none';
+    }
+  }
+
+  // Modal functions
+  function openModal(modalId) {
+    document.getElementById(modalId).style.display = 'flex';
+  }
+
+  function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+  }
+
+  // Close modal handlers
+  document.querySelectorAll('.close-btn, .close-modal').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const modal = e.target.closest('.modal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
+    });
+  });
+
+  // Load statistics
+  async function loadStats() {
+    try {
+      // These would be real API calls in a production environment
+      // For now, we'll use placeholder data
+      document.getElementById('users-count').textContent = '0';
+      document.getElementById('orgs-count').textContent = '0';
+      document.getElementById('sessions-count').textContent = '0';
+      document.getElementById('banned-count').textContent = '0';
+    } catch (error) {
+      console.error('Error loading stats:', error);
+    }
+  }
+
+  // Load users
+  async function loadUsers() {
+    try {
+      // This would be a real API call to get users
+      const tbody = document.querySelector('#users-table tbody');
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem;">Aucun utilisateur trouvé</td></tr>';
+    } catch (error) {
+      console.error('Error loading users:', error);
+    }
+  }
+
+  // Load organizations
+  async function loadOrganizations() {
+    try {
+      const { data } = await authClient.organization.list();
+      const tbody = document.querySelector('#orgs-table tbody');
+      
+      if (data && data.length > 0) {
+        tbody.innerHTML = data.map(org => `
+          <tr>
+            <td>${org.name}</td>
+            <td>${org.slug}</td>
+            <td>${org.members ? org.members.length : 0}</td>
+            <td>${new Date(org.createdAt).toLocaleDateString('fr-FR')}</td>
+            <td>
+              <div class="table-actions">
+                <button class="btn-small btn-edit" onclick="editOrg('${org.id}')">Modifier</button>
+                <button class="btn-small btn-ban" onclick="deleteOrg('${org.id}')">Supprimer</button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      } else {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem;">Aucune organisation trouvée</td></tr>';
+      }
+    } catch (error) {
+      console.error('Error loading organizations:', error);
+      const tbody = document.querySelector('#orgs-table tbody');
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem;">Erreur de chargement</td></tr>';
+    }
+  }
+
+  // Action button handlers
+  document.getElementById('create-user-btn').addEventListener('click', () => {
+    openModal('create-user-modal');
+  });
+
+  document.getElementById('create-org-btn').addEventListener('click', () => {
+    openModal('create-org-modal');
+  });
+
+  document.getElementById('refresh-users-btn').addEventListener('click', loadUsers);
+  document.getElementById('refresh-orgs-btn').addEventListener('click', loadOrganizations);
+
+  // Create user form
+  document.getElementById('create-user-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideError('create-user-error');
+    
+    const formData = new FormData(e.target);
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Création...';
+    
+    try {
+      // This would be an admin API call to create user
+      showError('create-user-error', 'Fonctionnalité de création d\'utilisateur à implémenter');
+    } catch (error) {
+      showError('create-user-error', 'Erreur lors de la création');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Créer';
+    }
+  });
+
+  // Test SMTP
+  document.getElementById('test-smtp-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('test-smtp-btn');
+    const statusSpan = document.getElementById('smtp-status');
+    
+    btn.disabled = true;
+    btn.textContent = 'Test en cours...';
+    statusSpan.textContent = 'Test en cours...';
+    
+    try {
+      // This would be a call to test SMTP
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API call
+      statusSpan.innerHTML = '<span class="status-ok">Fonctionnel</span>';
+    } catch (error) {
+      statusSpan.innerHTML = '<span class="status-error">Erreur</span>';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Tester SMTP';
+    }
+  });
+
+  // Global functions for table actions
+  window.editUser = (userId) => {
+    console.log('Edit user:', userId);
+  };
+
+  window.banUser = (userId) => {
+    document.getElementById('ban-user-id').value = userId;
+    openModal('ban-user-modal');
+  };
+
+  window.unbanUser = async (userId) => {
+    if (confirm('Débannir cet utilisateur ?')) {
+      try {
+        // API call to unban user
+        console.log('Unban user:', userId);
+        loadUsers();
+      } catch (error) {
+        alert('Erreur lors du débannissement');
+      }
+    }
+  };
+
+  window.editOrg = (orgId) => {
+    console.log('Edit org:', orgId);
+  };
+
+  window.deleteOrg = (orgId) => {
+    if (confirm('Supprimer cette organisation ? Cette action est irréversible.')) {
+      console.log('Delete org:', orgId);
+    }
+  };
+
+  // Initialize
+  loadStats();
+  loadUsers();
+  loadOrganizations();
+</script>

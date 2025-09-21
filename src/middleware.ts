@@ -4,8 +4,11 @@ import type { MiddlewareHandler } from "astro";
 
 const PRIVATE_PATHS = [
   "/dashboard",
+  "/profil",
   "/profile",
   "/account",
+  "/admin",
+  "/organisations",
   // ajoute ici toutes les routes privées
 ];
 
@@ -24,7 +27,7 @@ export const onRequest: MiddlewareHandler = async ({ request, url, locals }, nex
     return new Response(null, {
       status: 302,
       headers: {
-        Location: "/login", // page de connexion
+        Location: "/connexion", // page de connexion
       },
     });
   }

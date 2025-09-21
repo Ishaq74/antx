@@ -1,0 +1,565 @@
+---
+export const prerender = false;
+import BaseLayout from "@layouts/BaseLayout.astro";
+
+// Check if user is already authenticated
+const user = Astro.locals.user;
+if (user) {
+  return Astro.redirect("/");
+}
+---
+
+<BaseLayout title="Connexion" description="Connectez-vous à votre compte">
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <h1>Se connecter</h1>
+        <p>Accédez à votre compte</p>
+      </div>
+
+      <div class="auth-tabs">
+        <button class="tab-btn active" data-tab="email">Email</button>
+        <button class="tab-btn" data-tab="username">Nom d'utilisateur</button>
+        <button class="tab-btn" data-tab="otp">Code OTP</button>
+      </div>
+
+      <!-- Email/Password Form -->
+      <div class="tab-content active" id="email-tab">
+        <form id="email-form" class="auth-form">
+          <div class="form-group">
+            <label for="email">Adresse email</label>
+            <input 
+              type="email" 
+              id="email" 
+              name="email" 
+              required 
+              placeholder="votre@email.com"
+            />
+          </div>
+          
+          <div class="form-group">
+            <label for="password">Mot de passe</label>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              required 
+              placeholder="Votre mot de passe"
+            />
+          </div>
+          
+          <div class="form-options">
+            <label class="checkbox-label">
+              <input type="checkbox" name="rememberMe" checked />
+              <span>Se souvenir de moi</span>
+            </label>
+            <a href="/mot-de-passe-oublie" class="forgot-link">Mot de passe oublié ?</a>
+          </div>
+          
+          <button type="submit" class="auth-btn">Se connecter</button>
+          
+          <div class="auth-error" id="email-error" style="display: none;"></div>
+        </form>
+      </div>
+
+      <!-- Username/Password Form -->
+      <div class="tab-content" id="username-tab">
+        <form id="username-form" class="auth-form">
+          <div class="form-group">
+            <label for="username">Nom d'utilisateur</label>
+            <input 
+              type="text" 
+              id="username" 
+              name="username" 
+              required 
+              placeholder="votre_nom_utilisateur"
+            />
+          </div>
+          
+          <div class="form-group">
+            <label for="password-username">Mot de passe</label>
+            <input 
+              type="password" 
+              id="password-username" 
+              name="password" 
+              required 
+              placeholder="Votre mot de passe"
+            />
+          </div>
+          
+          <div class="form-options">
+            <label class="checkbox-label">
+              <input type="checkbox" name="rememberMe" checked />
+              <span>Se souvenir de moi</span>
+            </label>
+          </div>
+          
+          <button type="submit" class="auth-btn">Se connecter</button>
+          
+          <div class="auth-error" id="username-error" style="display: none;"></div>
+        </form>
+      </div>
+
+      <!-- Email OTP Form -->
+      <div class="tab-content" id="otp-tab">
+        <form id="otp-request-form" class="auth-form">
+          <p class="otp-description">
+            Recevez un code de connexion sécurisé par email
+          </p>
+          
+          <div class="form-group">
+            <label for="otp-email">Adresse email</label>
+            <input 
+              type="email" 
+              id="otp-email" 
+              name="email" 
+              required 
+              placeholder="votre@email.com"
+            />
+          </div>
+          
+          <button type="submit" class="auth-btn">Envoyer le code</button>
+          
+          <div class="auth-error" id="otp-error" style="display: none;"></div>
+        </form>
+
+        <!-- OTP Verification Form (hidden initially) -->
+        <form id="otp-verify-form" class="auth-form" style="display: none;">
+          <p class="otp-description">
+            Entrez le code reçu par email
+          </p>
+          
+          <div class="form-group">
+            <label for="otp-code">Code de vérification</label>
+            <input 
+              type="text" 
+              id="otp-code" 
+              name="otp" 
+              required 
+              placeholder="000000"
+              maxlength="6"
+              pattern="[0-9]{6}"
+            />
+          </div>
+          
+          <button type="submit" class="auth-btn">Vérifier le code</button>
+          <button type="button" id="back-to-email" class="auth-btn-secondary">Retour</button>
+          
+          <div class="auth-error" id="otp-verify-error" style="display: none;"></div>
+        </form>
+      </div>
+
+      <div class="auth-footer">
+        <p>Pas encore de compte ? <a href="/inscription">Créer un compte</a></p>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .auth-container {
+    min-height: calc(100vh - var(--header-height));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .auth-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    max-width: 420px;
+    overflow: hidden;
+  }
+
+  .auth-header {
+    text-align: center;
+    padding: 2rem 2rem 1rem;
+  }
+
+  .auth-header h1 {
+    margin: 0 0 0.5rem;
+    color: #1a202c;
+    font-size: 1.875rem;
+    font-weight: 700;
+  }
+
+  .auth-header p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 1rem;
+  }
+
+  .auth-tabs {
+    display: flex;
+    border-bottom: 1px solid #e5e7eb;
+    margin: 0 2rem;
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #6b7280;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+  }
+
+  .tab-btn:hover {
+    color: #374151;
+  }
+
+  .tab-btn.active {
+    color: #3b82f6;
+    border-bottom-color: #3b82f6;
+  }
+
+  .tab-content {
+    display: none;
+    padding: 2rem;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  .auth-form {
+    space-y: 1.5rem;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #374151;
+    font-size: 0.875rem;
+  }
+
+  .form-group input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .form-group input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem;
+    color: #374151;
+    cursor: pointer;
+  }
+
+  .checkbox-label input {
+    margin-right: 0.5rem;
+    width: auto;
+  }
+
+  .forgot-link {
+    font-size: 0.875rem;
+    color: #3b82f6;
+    text-decoration: none;
+  }
+
+  .forgot-link:hover {
+    text-decoration: underline;
+  }
+
+  .auth-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .auth-btn:hover {
+    background: #2563eb;
+  }
+
+  .auth-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .auth-btn-secondary {
+    width: 100%;
+    padding: 0.75rem;
+    background: transparent;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 0.75rem;
+  }
+
+  .auth-btn-secondary:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+  }
+
+  .auth-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    margin-top: 1rem;
+  }
+
+  .auth-footer {
+    text-align: center;
+    padding: 1.5rem 2rem 2rem;
+    border-top: 1px solid #e5e7eb;
+    background: #f9fafb;
+  }
+
+  .auth-footer p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+
+  .auth-footer a {
+    color: #3b82f6;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .auth-footer a:hover {
+    text-decoration: underline;
+  }
+
+  .otp-description {
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+  }
+
+  @media (max-width: 480px) {
+    .auth-container {
+      padding: 1rem;
+    }
+    
+    .auth-card {
+      max-width: 100%;
+    }
+    
+    .tab-btn {
+      font-size: 0.75rem;
+      padding: 0.5rem;
+    }
+  }
+</style>
+
+<script>
+  import { authClient } from "@lib/auth-client";
+
+  // Tab switching functionality
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const tabContents = document.querySelectorAll('.tab-content');
+
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tabId = btn.dataset.tab;
+      
+      // Remove active class from all tabs and contents
+      tabBtns.forEach(b => b.classList.remove('active'));
+      tabContents.forEach(c => c.classList.remove('active'));
+      
+      // Add active class to clicked tab and corresponding content
+      btn.classList.add('active');
+      document.getElementById(tabId + '-tab').classList.add('active');
+    });
+  });
+
+  // Error display function
+  function showError(elementId, message) {
+    const errorElement = document.getElementById(elementId);
+    errorElement.textContent = message;
+    errorElement.style.display = 'block';
+  }
+
+  function hideError(elementId) {
+    const errorElement = document.getElementById(elementId);
+    errorElement.style.display = 'none';
+  }
+
+  // Email/Password Sign In
+  document.getElementById('email-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideError('email-error');
+    
+    const formData = new FormData(e.target);
+    const email = formData.get('email');
+    const password = formData.get('password');
+    const rememberMe = formData.get('rememberMe') === 'on';
+    
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Connexion...';
+    
+    try {
+      const { data, error } = await authClient.signIn.email({
+        email,
+        password,
+        rememberMe,
+        callbackURL: "/"
+      });
+      
+      if (error) {
+        showError('email-error', error.message || 'Erreur de connexion');
+      } else {
+        window.location.href = "/";
+      }
+    } catch (error) {
+      showError('email-error', 'Erreur de connexion');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Se connecter';
+    }
+  });
+
+  // Username/Password Sign In
+  document.getElementById('username-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideError('username-error');
+    
+    const formData = new FormData(e.target);
+    const username = formData.get('username');
+    const password = formData.get('password');
+    const rememberMe = formData.get('rememberMe') === 'on';
+    
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Connexion...';
+    
+    try {
+      const { data, error } = await authClient.signIn.username({
+        username,
+        password,
+        rememberMe,
+        callbackURL: "/"
+      });
+      
+      if (error) {
+        showError('username-error', error.message || 'Erreur de connexion');
+      } else {
+        window.location.href = "/";
+      }
+    } catch (error) {
+      showError('username-error', 'Erreur de connexion');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Se connecter';
+    }
+  });
+
+  // OTP Request
+  document.getElementById('otp-request-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideError('otp-error');
+    
+    const formData = new FormData(e.target);
+    const email = formData.get('email');
+    
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Envoi...';
+    
+    try {
+      const { data, error } = await authClient.sendVerificationOtp({
+        email,
+        type: "sign-in"
+      });
+      
+      if (error) {
+        showError('otp-error', error.message || 'Erreur lors de l\'envoi du code');
+      } else {
+        // Show verification form
+        document.getElementById('otp-request-form').style.display = 'none';
+        document.getElementById('otp-verify-form').style.display = 'block';
+      }
+    } catch (error) {
+      showError('otp-error', 'Erreur lors de l\'envoi du code');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Envoyer le code';
+    }
+  });
+
+  // OTP Verification
+  document.getElementById('otp-verify-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideError('otp-verify-error');
+    
+    const formData = new FormData(e.target);
+    const otp = formData.get('otp');
+    const email = document.getElementById('otp-email').value;
+    
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Vérification...';
+    
+    try {
+      const { data, error } = await authClient.signIn.emailOtp({
+        email,
+        otp
+      });
+      
+      if (error) {
+        showError('otp-verify-error', error.message || 'Code invalide');
+      } else {
+        window.location.href = "/";
+      }
+    } catch (error) {
+      showError('otp-verify-error', 'Code invalide');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Vérifier le code';
+    }
+  });
+
+  // Back to email button
+  document.getElementById('back-to-email').addEventListener('click', () => {
+    document.getElementById('otp-verify-form').style.display = 'none';
+    document.getElementById('otp-request-form').style.display = 'block';
+    hideError('otp-verify-error');
+  });
+</script>

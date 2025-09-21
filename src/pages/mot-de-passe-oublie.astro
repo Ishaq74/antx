@@ -1,0 +1,452 @@
+---
+export const prerender = false;
+import BaseLayout from "@layouts/BaseLayout.astro";
+
+// Check if user is already authenticated
+const user = Astro.locals.user;
+if (user) {
+  return Astro.redirect("/");
+}
+---
+
+<BaseLayout title="Mot de passe oublié" description="Réinitialisez votre mot de passe">
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <h1>Mot de passe oublié</h1>
+        <p>Nous allons vous envoyer un code pour réinitialiser votre mot de passe</p>
+      </div>
+
+      <!-- Step 1: Request OTP -->
+      <div id="request-step" class="step-content">
+        <form id="request-form" class="auth-form">
+          <div class="form-group">
+            <label for="email">Adresse email</label>
+            <input 
+              type="email" 
+              id="email" 
+              name="email" 
+              required 
+              placeholder="votre@email.com"
+            />
+            <small>Entrez l'email associé à votre compte</small>
+          </div>
+          
+          <button type="submit" class="auth-btn">Envoyer le code</button>
+          
+          <div class="auth-error" id="request-error" style="display: none;"></div>
+        </form>
+      </div>
+
+      <!-- Step 2: Verify OTP and Set New Password -->
+      <div id="reset-step" class="step-content" style="display: none;">
+        <form id="reset-form" class="auth-form">
+          <div class="form-group">
+            <label for="otp">Code de vérification</label>
+            <input 
+              type="text" 
+              id="otp" 
+              name="otp" 
+              required 
+              placeholder="000000"
+              maxlength="6"
+              pattern="[0-9]{6}"
+            />
+            <small>Entrez le code reçu par email</small>
+          </div>
+          
+          <div class="form-group">
+            <label for="newPassword">Nouveau mot de passe</label>
+            <input 
+              type="password" 
+              id="newPassword" 
+              name="newPassword" 
+              required 
+              placeholder="Nouveau mot de passe sécurisé"
+              minlength="8"
+            />
+            <div class="password-strength" id="password-strength"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="confirmPassword">Confirmer le mot de passe</label>
+            <input 
+              type="password" 
+              id="confirmPassword" 
+              name="confirmPassword" 
+              required 
+              placeholder="Confirmer le nouveau mot de passe"
+            />
+          </div>
+          
+          <button type="submit" class="auth-btn">Réinitialiser le mot de passe</button>
+          <button type="button" id="back-btn" class="auth-btn-secondary">Retour</button>
+          
+          <div class="auth-error" id="reset-error" style="display: none;"></div>
+        </form>
+      </div>
+
+      <!-- Step 3: Success -->
+      <div id="success-step" class="step-content" style="display: none;">
+        <div class="success-message">
+          <div class="success-icon">✅</div>
+          <h2>Mot de passe réinitialisé !</h2>
+          <p>Votre mot de passe a été mis à jour avec succès.</p>
+          <a href="/connexion" class="auth-btn">Se connecter</a>
+        </div>
+      </div>
+
+      <div class="auth-footer">
+        <p>Vous vous souvenez de votre mot de passe ? <a href="/connexion">Se connecter</a></p>
+        <p>Pas encore de compte ? <a href="/inscription">Créer un compte</a></p>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .auth-container {
+    min-height: calc(100vh - var(--header-height));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .auth-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    max-width: 420px;
+    overflow: hidden;
+  }
+
+  .auth-header {
+    text-align: center;
+    padding: 2rem 2rem 1rem;
+  }
+
+  .auth-header h1 {
+    margin: 0 0 0.5rem;
+    color: #1a202c;
+    font-size: 1.875rem;
+    font-weight: 700;
+  }
+
+  .auth-header p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 1rem;
+  }
+
+  .step-content {
+    padding: 0 2rem 2rem;
+  }
+
+  .auth-form {
+    space-y: 1.5rem;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #374151;
+    font-size: 0.875rem;
+  }
+
+  .form-group input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .form-group input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .form-group small {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+  }
+
+  .password-strength {
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .password-strength.weak {
+    color: #dc2626;
+  }
+
+  .password-strength.medium {
+    color: #f59e0b;
+  }
+
+  .password-strength.strong {
+    color: #10b981;
+  }
+
+  .auth-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+  }
+
+  .auth-btn:hover {
+    background: #2563eb;
+  }
+
+  .auth-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .auth-btn-secondary {
+    width: 100%;
+    padding: 0.75rem;
+    background: transparent;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 0.75rem;
+  }
+
+  .auth-btn-secondary:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+  }
+
+  .auth-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    margin-top: 1rem;
+  }
+
+  .success-message {
+    text-align: center;
+    padding: 2rem 0;
+  }
+
+  .success-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+  }
+
+  .success-message h2 {
+    margin: 0 0 1rem;
+    color: #059669;
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  .success-message p {
+    margin: 0 0 2rem;
+    color: #6b7280;
+    font-size: 1rem;
+  }
+
+  .auth-footer {
+    text-align: center;
+    padding: 1.5rem 2rem 2rem;
+    border-top: 1px solid #e5e7eb;
+    background: #f9fafb;
+  }
+
+  .auth-footer p {
+    margin: 0 0 0.5rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+
+  .auth-footer p:last-child {
+    margin-bottom: 0;
+  }
+
+  .auth-footer a {
+    color: #3b82f6;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .auth-footer a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 480px) {
+    .auth-container {
+      padding: 1rem;
+    }
+    
+    .auth-card {
+      max-width: 100%;
+    }
+  }
+</style>
+
+<script>
+  import { authClient } from "@lib/auth-client";
+
+  let currentEmail = '';
+
+  // Password strength checking
+  const passwordInput = document.getElementById('newPassword');
+  const strengthDiv = document.getElementById('password-strength');
+
+  passwordInput?.addEventListener('input', () => {
+    const password = passwordInput.value;
+    const strength = calculatePasswordStrength(password);
+    
+    strengthDiv.className = 'password-strength ' + strength.class;
+    strengthDiv.textContent = strength.text;
+  });
+
+  function calculatePasswordStrength(password) {
+    if (password.length < 6) {
+      return { class: 'weak', text: 'Mot de passe trop court' };
+    }
+    
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (/[a-z]/.test(password)) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/\d/.test(password)) score++;
+    if (/[^a-zA-Z\d]/.test(password)) score++;
+    
+    if (score < 3) {
+      return { class: 'weak', text: 'Mot de passe faible' };
+    } else if (score < 4) {
+      return { class: 'medium', text: 'Mot de passe moyen' };
+    } else {
+      return { class: 'strong', text: 'Mot de passe fort' };
+    }
+  }
+
+  // Error display functions
+  function showError(elementId, message) {
+    const errorElement = document.getElementById(elementId);
+    errorElement.textContent = message;
+    errorElement.style.display = 'block';
+  }
+
+  function hideError(elementId) {
+    const errorElement = document.getElementById(elementId);
+    errorElement.style.display = 'none';
+  }
+
+  // Show specific step
+  function showStep(stepId) {
+    const steps = ['request-step', 'reset-step', 'success-step'];
+    steps.forEach(id => {
+      document.getElementById(id).style.display = id === stepId ? 'block' : 'none';
+    });
+  }
+
+  // Step 1: Request OTP
+  document.getElementById('request-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideError('request-error');
+    
+    const formData = new FormData(e.target);
+    const email = formData.get('email');
+    currentEmail = email;
+    
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Envoi...';
+    
+    try {
+      const { data, error } = await authClient.sendVerificationOtp({
+        email,
+        type: "forgot-password"
+      });
+      
+      if (error) {
+        showError('request-error', error.message || 'Erreur lors de l\'envoi du code');
+      } else {
+        showStep('reset-step');
+      }
+    } catch (error) {
+      showError('request-error', 'Erreur lors de l\'envoi du code');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Envoyer le code';
+    }
+  });
+
+  // Step 2: Verify OTP and Reset Password
+  document.getElementById('reset-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideError('reset-error');
+    
+    const formData = new FormData(e.target);
+    const otp = formData.get('otp');
+    const newPassword = formData.get('newPassword');
+    const confirmPassword = formData.get('confirmPassword');
+    
+    // Validate password match
+    if (newPassword !== confirmPassword) {
+      showError('reset-error', 'Les mots de passe ne correspondent pas');
+      return;
+    }
+    
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Réinitialisation...';
+    
+    try {
+      const { data, error } = await authClient.resetPassword({
+        newPassword,
+        otp
+      });
+      
+      if (error) {
+        showError('reset-error', error.message || 'Code invalide ou expiré');
+      } else {
+        showStep('success-step');
+      }
+    } catch (error) {
+      showError('reset-error', 'Code invalide ou expiré');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Réinitialiser le mot de passe';
+    }
+  });
+
+  // Back button
+  document.getElementById('back-btn').addEventListener('click', () => {
+    showStep('request-step');
+    hideError('reset-error');
+  });
+</script>

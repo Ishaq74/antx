@@ -1,0 +1,1007 @@
+---
+export const prerender = false;
+import BaseLayout from "@layouts/BaseLayout.astro";
+
+// Check if user is authenticated
+const user = Astro.locals.user;
+const session = Astro.locals.session;
+
+if (!user) {
+  return Astro.redirect("/connexion");
+}
+---
+
+<BaseLayout title="Mes organisations" description="Gérez vos organisations">
+  <div class="orgs-container">
+    <div class="orgs-header">
+      <h1>Mes organisations</h1>
+      <p>Gérez vos organisations et invitations</p>
+      <button id="create-org-btn" class="btn-primary">Créer une organisation</button>
+    </div>
+
+    <div class="orgs-content">
+      <!-- Current Organizations -->
+      <div class="orgs-section">
+        <div class="section-header">
+          <h2>Organisations actuelles</h2>
+          <div class="section-info">
+            <span id="active-org-info">Aucune organisation active</span>
+          </div>
+        </div>
+        
+        <div id="organizations-grid" class="organizations-grid">
+          <!-- Organizations will be loaded here -->
+        </div>
+      </div>
+
+      <!-- Invitations -->
+      <div class="orgs-section">
+        <div class="section-header">
+          <h2>Invitations reçues</h2>
+        </div>
+        
+        <div id="invitations-list" class="invitations-list">
+          <!-- Invitations will be loaded here -->
+        </div>
+      </div>
+
+      <!-- Organization Management (for admins/owners) -->
+      <div id="org-management" class="orgs-section" style="display: none;">
+        <div class="section-header">
+          <h2>Gestion de l'organisation</h2>
+        </div>
+        
+        <div class="management-tabs">
+          <button class="tab-btn active" data-tab="members">Membres</button>
+          <button class="tab-btn" data-tab="invites">Invitations</button>
+          <button class="tab-btn" data-tab="settings">Paramètres</button>
+        </div>
+
+        <!-- Members Tab -->
+        <div class="tab-content active" id="members-tab">
+          <div class="tab-header">
+            <h3>Membres de l'organisation</h3>
+            <button id="invite-member-btn" class="btn-primary">Inviter un membre</button>
+          </div>
+          <div id="members-list" class="members-list">
+            <!-- Members will be loaded here -->
+          </div>
+        </div>
+
+        <!-- Invites Tab -->
+        <div class="tab-content" id="invites-tab">
+          <div class="tab-header">
+            <h3>Invitations envoyées</h3>
+          </div>
+          <div id="pending-invites-list" class="invites-list">
+            <!-- Pending invites will be loaded here -->
+          </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div class="tab-content" id="settings-tab">
+          <div class="tab-header">
+            <h3>Paramètres de l'organisation</h3>
+          </div>
+          <form id="org-settings-form" class="settings-form">
+            <div class="form-group">
+              <label for="org-name">Nom de l'organisation</label>
+              <input type="text" id="org-name" name="name" required />
+            </div>
+            <div class="form-group">
+              <label for="org-slug">Identifiant unique</label>
+              <input type="text" id="org-slug" name="slug" readonly />
+              <small>L'identifiant ne peut pas être modifié</small>
+            </div>
+            <div class="form-group">
+              <label for="org-description">Description</label>
+              <textarea id="org-description" name="description" rows="3"></textarea>
+            </div>
+            <button type="submit" class="btn-primary">Sauvegarder</button>
+            <div class="auth-error" id="settings-error" style="display: none;"></div>
+            <div class="auth-success" id="settings-success" style="display: none;"></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Organization Modal -->
+  <div id="create-org-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Créer une organisation</h3>
+        <button class="close-btn">&times;</button>
+      </div>
+      <form id="create-org-form">
+        <div class="form-group">
+          <label for="new-org-name">Nom de l'organisation</label>
+          <input type="text" id="new-org-name" name="name" required />
+        </div>
+        <div class="form-group">
+          <label for="new-org-slug">Identifiant unique</label>
+          <input type="text" id="new-org-slug" name="slug" pattern="[a-z0-9-]+" required />
+          <small>Lettres minuscules, chiffres et tirets uniquement</small>
+        </div>
+        <div class="form-group">
+          <label for="new-org-description">Description (optionnel)</label>
+          <textarea id="new-org-description" name="description" rows="3"></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">Créer</button>
+          <button type="button" class="btn-secondary close-modal">Annuler</button>
+        </div>
+        <div class="auth-error" id="create-org-error" style="display: none;"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Invite Member Modal -->
+  <div id="invite-member-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Inviter un membre</h3>
+        <button class="close-btn">&times;</button>
+      </div>
+      <form id="invite-member-form">
+        <div class="form-group">
+          <label for="invite-email">Adresse email</label>
+          <input type="email" id="invite-email" name="email" required />
+        </div>
+        <div class="form-group">
+          <label for="invite-role">Rôle</label>
+          <select id="invite-role" name="role">
+            <option value="member">Membre</option>
+            <option value="admin">Administrateur</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="invite-message">Message personnalisé (optionnel)</label>
+          <textarea id="invite-message" name="message" rows="3" placeholder="Message d'invitation personnalisé..."></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">Envoyer l'invitation</button>
+          <button type="button" class="btn-secondary close-modal">Annuler</button>
+        </div>
+        <div class="auth-error" id="invite-error" style="display: none;"></div>
+        <div class="auth-success" id="invite-success" style="display: none;"></div>
+      </form>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .orgs-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .orgs-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .orgs-header h1 {
+    margin: 0 0 0.5rem;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1a202c;
+  }
+
+  .orgs-header p {
+    margin: 0 0 2rem;
+    font-size: 1.125rem;
+    color: #6b7280;
+  }
+
+  .orgs-content {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+  }
+
+  .orgs-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 1rem;
+  }
+
+  .section-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1a202c;
+  }
+
+  .section-info {
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+
+  .organizations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .org-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .org-card:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  .org-card.active {
+    border-color: #10b981;
+    background: #f0fdf4;
+  }
+
+  .org-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 1rem;
+  }
+
+  .org-card h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1a202c;
+  }
+
+  .org-role {
+    background: #dbeafe;
+    color: #1d4ed8;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .org-role.admin {
+    background: #fef3cd;
+    color: #92400e;
+  }
+
+  .org-role.owner {
+    background: #f3e8ff;
+    color: #7c3aed;
+  }
+
+  .org-card p {
+    margin: 0 0 1rem;
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
+
+  .org-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .btn-small {
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-activate {
+    background: #10b981;
+    color: white;
+  }
+
+  .btn-activate:hover {
+    background: #059669;
+  }
+
+  .btn-manage {
+    background: #3b82f6;
+    color: white;
+  }
+
+  .btn-manage:hover {
+    background: #2563eb;
+  }
+
+  .btn-leave {
+    background: #dc2626;
+    color: white;
+  }
+
+  .btn-leave:hover {
+    background: #b91c1c;
+  }
+
+  .invitations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .invitation-card {
+    border: 1px solid #fbbf24;
+    background: #fffbeb;
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+
+  .invitation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 1rem;
+  }
+
+  .invitation-info h4 {
+    margin: 0 0 0.25rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1a202c;
+  }
+
+  .invitation-info p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+
+  .invitation-role {
+    background: #fbbf24;
+    color: #92400e;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .invitation-actions {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .btn-accept {
+    background: #10b981;
+    color: white;
+  }
+
+  .btn-accept:hover {
+    background: #059669;
+  }
+
+  .btn-decline {
+    background: #dc2626;
+    color: white;
+  }
+
+  .btn-decline:hover {
+    background: #b91c1c;
+  }
+
+  .management-tabs {
+    display: flex;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 2rem;
+  }
+
+  .tab-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #6b7280;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+  }
+
+  .tab-btn:hover {
+    color: #374151;
+  }
+
+  .tab-btn.active {
+    color: #3b82f6;
+    border-bottom-color: #3b82f6;
+  }
+
+  .tab-content {
+    display: none;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  .tab-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .tab-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1a202c;
+  }
+
+  .members-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .member-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1rem;
+  }
+
+  .member-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .member-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .member-details h4 {
+    margin: 0 0 0.25rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1a202c;
+  }
+
+  .member-details p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+
+  .member-role {
+    background: #dbeafe;
+    color: #1d4ed8;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .member-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .btn-primary, .btn-secondary, .btn-danger {
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    font-size: 0.875rem;
+  }
+
+  .btn-primary {
+    background: #3b82f6;
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: #2563eb;
+  }
+
+  .btn-secondary {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+  }
+
+  .btn-secondary:hover {
+    background: #e5e7eb;
+  }
+
+  .btn-danger {
+    background: #dc2626;
+    color: white;
+  }
+
+  .btn-danger:hover {
+    background: #b91c1c;
+  }
+
+  .settings-form {
+    max-width: 500px;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #374151;
+    font-size: 0.875rem;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .form-group small {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+    display: block;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 2rem;
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 1rem;
+  }
+
+  .modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 0;
+  }
+
+  .close-btn:hover {
+    color: #374151;
+  }
+
+  .auth-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    margin-top: 1rem;
+  }
+
+  .auth-success {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    margin-top: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .orgs-container {
+      padding: 1rem;
+    }
+
+    .organizations-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .section-header {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: stretch;
+    }
+
+    .org-card-header {
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: start;
+    }
+
+    .invitation-header {
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: start;
+    }
+
+    .member-card {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: stretch;
+    }
+
+    .form-actions {
+      flex-direction: column;
+    }
+
+    .management-tabs {
+      overflow-x: auto;
+    }
+  }
+</style>
+
+<script>
+  import { authClient } from "@lib/auth-client";
+
+  let currentOrganization = null;
+
+  // Error/Success display functions
+  function showError(elementId, message) {
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.textContent = message;
+      element.style.display = 'block';
+    }
+  }
+
+  function showSuccess(elementId, message) {
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.textContent = message;
+      element.style.display = 'block';
+    }
+  }
+
+  function hideMessages(prefix) {
+    const errorEl = document.getElementById(prefix + '-error');
+    const successEl = document.getElementById(prefix + '-success');
+    if (errorEl) errorEl.style.display = 'none';
+    if (successEl) successEl.style.display = 'none';
+  }
+
+  // Modal functions
+  function openModal(modalId) {
+    document.getElementById(modalId).style.display = 'flex';
+  }
+
+  function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+  }
+
+  // Tab switching
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const tabContents = document.querySelectorAll('.tab-content');
+
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tabId = btn.dataset.tab;
+      
+      tabBtns.forEach(b => b.classList.remove('active'));
+      tabContents.forEach(c => c.classList.remove('active'));
+      
+      btn.classList.add('active');
+      document.getElementById(tabId + '-tab').classList.add('active');
+    });
+  });
+
+  // Load organizations
+  async function loadOrganizations() {
+    try {
+      const { data } = await authClient.organization.list();
+      const grid = document.getElementById('organizations-grid');
+      
+      if (data && data.length > 0) {
+        grid.innerHTML = data.map(org => `
+          <div class="org-card ${org.isActive ? 'active' : ''}" data-org-id="${org.id}">
+            <div class="org-card-header">
+              <h3>${org.name}</h3>
+              <span class="org-role ${org.role}">${org.role}</span>
+            </div>
+            <p>${org.slug}</p>
+            <p>${org.members ? org.members.length : 0} membre(s)</p>
+            <div class="org-actions">
+              ${!org.isActive ? `<button class="btn-small btn-activate" onclick="setActiveOrg('${org.id}')">Activer</button>` : ''}
+              ${['owner', 'admin'].includes(org.role) ? `<button class="btn-small btn-manage" onclick="manageOrg('${org.id}')">Gérer</button>` : ''}
+              ${org.role !== 'owner' ? `<button class="btn-small btn-leave" onclick="leaveOrg('${org.id}')">Quitter</button>` : ''}
+            </div>
+          </div>
+        `).join('');
+
+        // Update active org info
+        const activeOrg = data.find(org => org.isActive);
+        const activeOrgInfo = document.getElementById('active-org-info');
+        if (activeOrg) {
+          activeOrgInfo.textContent = `Organisation active: ${activeOrg.name} (${activeOrg.role})`;
+        }
+      } else {
+        grid.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 2rem;">Aucune organisation trouvée</p>';
+      }
+    } catch (error) {
+      console.error('Error loading organizations:', error);
+    }
+  }
+
+  // Load invitations
+  async function loadInvitations() {
+    try {
+      // This would be a real API call to get invitations
+      const invitationsList = document.getElementById('invitations-list');
+      invitationsList.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 2rem;">Aucune invitation en attente</p>';
+    } catch (error) {
+      console.error('Error loading invitations:', error);
+    }
+  }
+
+  // Set active organization
+  window.setActiveOrg = async (orgId) => {
+    try {
+      await authClient.organization.setActive({ organizationId: orgId });
+      loadOrganizations();
+    } catch (error) {
+      console.error('Error setting active org:', error);
+    }
+  };
+
+  // Manage organization
+  window.manageOrg = async (orgId) => {
+    try {
+      // Get organization details
+      const { data } = await authClient.organization.getById({ organizationId: orgId });
+      if (data) {
+        currentOrganization = data;
+        document.getElementById('org-management').style.display = 'block';
+        
+        // Populate settings form
+        document.getElementById('org-name').value = data.name;
+        document.getElementById('org-slug').value = data.slug;
+        document.getElementById('org-description').value = data.description || '';
+        
+        loadOrgMembers(orgId);
+        loadPendingInvites(orgId);
+      }
+    } catch (error) {
+      console.error('Error managing org:', error);
+    }
+  };
+
+  // Leave organization
+  window.leaveOrg = async (orgId) => {
+    if (confirm('Êtes-vous sûr de vouloir quitter cette organisation ?')) {
+      try {
+        await authClient.organization.leave({ organizationId: orgId });
+        loadOrganizations();
+      } catch (error) {
+        console.error('Error leaving org:', error);
+      }
+    }
+  };
+
+  // Load organization members
+  async function loadOrgMembers(orgId) {
+    try {
+      // This would be a real API call to get members
+      const membersList = document.getElementById('members-list');
+      membersList.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 2rem;">Chargement des membres...</p>';
+    } catch (error) {
+      console.error('Error loading members:', error);
+    }
+  }
+
+  // Load pending invites
+  async function loadPendingInvites(orgId) {
+    try {
+      // This would be a real API call to get pending invites
+      const invitesList = document.getElementById('pending-invites-list');
+      invitesList.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 2rem;">Aucune invitation en attente</p>';
+    } catch (error) {
+      console.error('Error loading pending invites:', error);
+    }
+  }
+
+  // Close modal handlers
+  document.querySelectorAll('.close-btn, .close-modal').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const modal = e.target.closest('.modal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
+    });
+  });
+
+  // Create organization modal
+  document.getElementById('create-org-btn').addEventListener('click', () => {
+    openModal('create-org-modal');
+  });
+
+  // Auto-generate slug
+  const orgNameInput = document.getElementById('new-org-name');
+  const orgSlugInput = document.getElementById('new-org-slug');
+
+  orgNameInput.addEventListener('input', () => {
+    const slug = orgNameInput.value
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .slice(0, 50);
+    orgSlugInput.value = slug;
+  });
+
+  // Create organization
+  document.getElementById('create-org-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideMessages('create-org');
+    
+    const formData = new FormData(e.target);
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Création...';
+    
+    try {
+      const { data, error } = await authClient.organization.create({
+        name: formData.get('name'),
+        slug: formData.get('slug'),
+        description: formData.get('description')
+      });
+      
+      if (error) {
+        showError('create-org-error', error.message || 'Erreur lors de la création');
+      } else {
+        closeModal('create-org-modal');
+        loadOrganizations();
+        e.target.reset();
+      }
+    } catch (error) {
+      showError('create-org-error', 'Erreur lors de la création');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Créer';
+    }
+  });
+
+  // Invite member modal
+  document.getElementById('invite-member-btn').addEventListener('click', () => {
+    openModal('invite-member-modal');
+  });
+
+  // Invite member
+  document.getElementById('invite-member-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideMessages('invite');
+    
+    const formData = new FormData(e.target);
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Envoi...';
+    
+    try {
+      const { data, error } = await authClient.organization.invite({
+        organizationId: currentOrganization.id,
+        email: formData.get('email'),
+        role: formData.get('role'),
+        message: formData.get('message')
+      });
+      
+      if (error) {
+        showError('invite-error', error.message || 'Erreur lors de l\'invitation');
+      } else {
+        showSuccess('invite-success', 'Invitation envoyée avec succès');
+        e.target.reset();
+        loadPendingInvites(currentOrganization.id);
+      }
+    } catch (error) {
+      showError('invite-error', 'Erreur lors de l\'invitation');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Envoyer l\'invitation';
+    }
+  });
+
+  // Organization settings
+  document.getElementById('org-settings-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideMessages('settings');
+    
+    const formData = new FormData(e.target);
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sauvegarde...';
+    
+    try {
+      const { data, error } = await authClient.organization.update({
+        organizationId: currentOrganization.id,
+        name: formData.get('name'),
+        description: formData.get('description')
+      });
+      
+      if (error) {
+        showError('settings-error', error.message || 'Erreur lors de la mise à jour');
+      } else {
+        showSuccess('settings-success', 'Paramètres mis à jour avec succès');
+        loadOrganizations();
+      }
+    } catch (error) {
+      showError('settings-error', 'Erreur lors de la mise à jour');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Sauvegarder';
+    }
+  });
+
+  // Initialize
+  loadOrganizations();
+  loadInvitations();
+</script>
