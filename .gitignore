@@ -30,3 +30,11 @@ pnpm-debug.log*
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Coverage reports
+coverage/
+
+# Test snapshots (commit these when ready)
+**/test-results/
+**/*-actual.png
+**/*-diff.png

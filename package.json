@@ -8,9 +8,15 @@
     "preview": "astro preview",
     "astro": "astro",
     "test": "vitest",
-    "test:unit": "vitest",
+    "test:unit": "vitest run --coverage",
+    "test:unit:watch": "vitest --coverage",
     "test:e2e": "playwright test",
-    "test:all": "npm run test:unit && npm run test:e2e"
+    "test:e2e:ui": "playwright test --ui",
+    "test:all": "npm run test:unit && npm run test:e2e",
+    "test:coverage": "vitest run --coverage --reporter=verbose",
+    "test:security": "playwright test e2e-tests/security-advanced.spec.ts e2e-tests/api-integration.spec.ts",
+    "test:accessibility": "playwright test e2e-tests/accessibility-responsive.spec.ts",
+    "test:visual": "playwright test e2e-tests/visual-regression.spec.ts"
   },
   "dependencies": {
     "@astrojs/vercel": "^8.2.7",
@@ -28,6 +34,8 @@
     "@playwright/test": "^1.55.0",
     "@types/node": "^24.5.2",
     "@types/nodemailer": "^7.0.1",
+    "@vitest/coverage-v8": "^3.2.4",
+    "axe-playwright": "^2.2.2",
     "prisma": "^6.16.2",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
