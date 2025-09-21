@@ -24,3 +24,9 @@ pnpm-debug.log*
 .idea/
 
 /generated/prisma
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
